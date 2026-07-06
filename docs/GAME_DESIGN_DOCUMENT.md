@@ -341,6 +341,8 @@ Day ends ──> End of Day Summary ──> Start Next Day ──> Dashboard (ne
 
 **Feel:** Cozy · Warm · Cheerful · Educational.
 
+**Art direction target (v1.1, July 2026):** "lofi cozy 2D" per Talia's reference sheet — soft rounded characters with simple hair/outfits, isometric *rooms* (walls, windows, wall art, shelves, rugs) rather than floating floor islands, dense friendly props (plants, mugs, folders), and a pastel palette compatible with the §12 tokens. Current scenes are hand-coded SVG approximations; the full look lands when generated sprite/prop PNGs (from the reference) replace or augment the SVG layer.
+
 **Color palette** (never pure black; "colorful but muted — warm sunset primaries with soft accents"):
 
 | Group | Tokens |

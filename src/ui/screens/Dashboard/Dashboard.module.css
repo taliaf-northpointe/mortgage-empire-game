@@ -260,6 +260,13 @@
   fill: var(--color-cocoa);
 }
 
+.posterText {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--color-cocoa);
+}
+
 .bob {
   animation: bob 2.4s ease-in-out infinite alternate;
 }
