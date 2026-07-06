@@ -102,13 +102,12 @@ const DEFAULT_SETTINGS: AudioSettings = {
 const LEGACY_MUSIC_VOLUME = 0.7;
 
 /**
- * Background music is a simple rotating playlist (Talia's three lo-fi
- * picks): play in order, then repeat. Scene changes no longer switch tracks.
+ * Background music is a simple rotating playlist (Talia's lo-fi picks):
+ * play in order, then repeat. Scene changes no longer switch tracks.
  */
 export const PLAYLIST: AudioAssetDefinition[] = [
-  { path: '/assets/audio/music/playlist-1.mp3', category: 'music', volume: 0.6, preload: true },
-  { path: '/assets/audio/music/playlist-2.mp3', category: 'music', volume: 0.6, preload: true },
-  { path: '/assets/audio/music/playlist-3.mp3', category: 'music', volume: 0.6, preload: true },
+  { path: '/assets/audio/music/playlist-1.mp3', category: 'music', volume: 0.6, preload: true }, // chill lofi ambient
+  { path: '/assets/audio/music/playlist-2.mp3', category: 'music', volume: 0.6, preload: true }, // lofi background ambient
 ];
 
 const SOUND_LIBRARY: Record<SoundCueId, AudioAssetDefinition> = {

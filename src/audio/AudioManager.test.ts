@@ -29,13 +29,12 @@ describe('AudioManager', () => {
     expect(saved.ambienceVolume).toBe(0.6);
   });
 
-  it('rotates the three-song playlist in order, then repeats', () => {
+  it('rotates the playlist in order, then repeats', () => {
     const manager = AudioManager.getInstance();
 
-    expect(PLAYLIST).toHaveLength(3);
+    expect(PLAYLIST).toHaveLength(2);
     expect(manager.nextTrackIndex(0)).toBe(1);
-    expect(manager.nextTrackIndex(1)).toBe(2);
-    expect(manager.nextTrackIndex(2)).toBe(0);
+    expect(manager.nextTrackIndex(1)).toBe(0);
   });
 
   it('raises the dynamic intensity when the office gets busier', () => {
