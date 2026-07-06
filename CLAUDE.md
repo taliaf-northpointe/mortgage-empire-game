@@ -22,7 +22,7 @@
 ## Milestone status
 
 - [x] M0 — Scaffold
-- [ ] M1 — Engine core (no UI)
+- [x] M1 — Engine core (no UI)
 - [ ] M2 — Main Menu + save system
 - [ ] M3 — Dashboard shell
 - [ ] M4 — Pipeline + loan detail

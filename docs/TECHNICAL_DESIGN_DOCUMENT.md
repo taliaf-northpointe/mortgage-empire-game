@@ -134,6 +134,7 @@ interface Loan {
   statusTag: string | null;          // "Missing 2 docs", "Rate lock", …
   rate: number;
   termYears: 15 | 30;
+  progressHours: number;             // hours accumulated toward the current stage (§4 rule c)
 }
 
 interface Employee {
@@ -162,6 +163,27 @@ interface GameState {
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];          // feeds End-of-Day deltas & charts
   rngSeed: number;
+}
+
+// Supporting types referenced above (added in M1)
+type TraitKey = 'enthusiastic' | 'detailOriented' | 'prompt'
+              | 'impatient' | 'cautious' | 'chatty';
+
+interface GameEvent {
+  id: string;                        // deterministic: "evt-<day>-<hour>-<n>"
+  day: number;
+  hour: number;
+  category: 'loans' | 'customers' | 'alerts';   // Dashboard feed filters (GDD §6)
+  title: string;                     // player-facing — voice rules apply
+  detail: string;
+}
+
+interface DaySummary {
+  day: number;
+  loansCompleted: number;
+  revenue: number;                   // coins earned during the day
+  xpEarned: number;
+  starRating: 1 | 2 | 3 | 4 | 5;     // simple formula in M1; refined in M7 (GDD §10)
 }
 ```
 
