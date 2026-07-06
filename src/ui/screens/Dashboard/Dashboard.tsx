@@ -28,7 +28,7 @@ type Speed = 0 | 1 | 2 | 3;
 interface DashboardProps {
   speed: Speed;
   onSpeedChange(speed: Speed): void;
-  onNavigate(screen: 'pipeline' | 'learning' | 'audioSettings'): void;
+  onNavigate(screen: 'pipeline' | 'learning' | 'employees' | 'audioSettings'): void;
   onExitToMenu(): void;
 }
 
@@ -54,7 +54,15 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           <span>Old Town</span>
         </div>
         <NavItem icon={<Home size={17} />} label="Office" active />
-        <NavItem icon={<Users size={17} />} label="Employees" badge={employees.length} soon />
+        <NavItem
+          icon={<Users size={17} />}
+          label="Employees"
+          badge={employees.length}
+          onClick={() => {
+            audioManager.playCue('menuNavigation');
+            onNavigate('employees');
+          }}
+        />
         <NavItem
           icon={<FolderKanban size={17} />}
           label="Pipeline"

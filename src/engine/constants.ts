@@ -5,7 +5,7 @@
 import type { DocumentKey, LoanProduct, LoanPurpose, LoanStage, Role, Season, TraitKey } from './types';
 
 /** GDD §1 */
-export const GAME_TITLE = 'Mortgage Empire';
+export const GAME_TITLE = 'Mortgage Tycoon';
 export const TAGLINE = 'Build your neighborhood. Own the block.';
 
 /** TDD §5 — localStorage save key */
@@ -206,8 +206,45 @@ export const CLOSING_FEE_RATE = 0.0175;
 /** GDD §10 — XP per completed loan (End-of-Day shows "+300 XP" for a good day) */
 export const XP_PER_COMPLETED_LOAN = 100;
 
-/** M6 will derive workload from this; declared now so no magic numbers later */
+/** GDD §5 — workload = active assigned loans / this, as a % */
 export const MAX_LOANS_PER_EMPLOYEE = 4;
+
+/** GDD §5 (M6) — employee effectiveness: progress per worked hour */
+export const SKILL_SPEED_STEP = 0.15; // each skill point above/below 3 = ±15% speed
+export const OVERWORKED_THRESHOLD = 90; // workload % at which effectiveness drops
+export const OVERWORKED_SPEED_PENALTY = 0.5; // overworked employees work at half speed
+
+/** GDD §5 (M6) — daily morale: heavy workload wears people down, light lets them recover */
+export const WORKLOAD_HEAVY = 70;
+export const WORKLOAD_LIGHT = 50;
+export const HAPPINESS_DECAY_OVERWORKED = 4; // per day at ≥ OVERWORKED_THRESHOLD
+export const HAPPINESS_DECAY_HEAVY = 2; // per day at ≥ WORKLOAD_HEAVY
+export const HAPPINESS_RECOVERY_LIGHT = 2; // per day at < WORKLOAD_LIGHT
+
+/** GDD §5 (M6) — employee tags */
+export const STAR_SKILL_MIN = 4.5;
+export const STAR_HAPPINESS_MIN = 80;
+export const NEEDS_BREAK_HAPPINESS = 40;
+
+/** GDD §5 (M6) — Train / Promote / Hire */
+export const TRAINING_COST = 400;
+export const TRAINING_SKILL_GAIN = 0.25;
+export const SKILL_CAP_BASE = 2.5; // cap = base + level
+export const EMPLOYEE_MAX_LEVEL = 3;
+export const PROMOTION_RAISE = 1.15; // salary multiplier on promotion
+export const HIRING_FEE = 1_000;
+
+/** GDD §5 — mockup salary ranges per role (used for hire candidates) */
+export const SALARY_RANGE_BY_ROLE: Record<Role, { min: number; max: number }> = {
+  loanOfficer: { min: 4_400, max: 5_800 },
+  processor: { min: 3_600, max: 4_100 },
+  underwriter: { min: 4_700, max: 5_400 },
+  closer: { min: 4_200, max: 5_100 },
+};
+
+/** GDD §2/§4 (M6) — simple daily lead generation until M7 events */
+export const LEAD_SPAWN_CHANCE = 0.6; // per morning
+export const MAX_ACTIVE_LOANS = 6;
 
 /** New-game starting values (GDD §8 HUD examples; coins are a tunable) */
 export const STARTING_COINS = 12_000;

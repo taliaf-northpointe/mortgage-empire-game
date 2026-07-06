@@ -46,12 +46,12 @@ describe('parseSave validation', () => {
   });
 
   it('rejects non-JSON with a friendly message', () => {
-    expect(() => parseSave('definitely not json')).toThrow(/Mortgage Empire save/);
+    expect(() => parseSave('definitely not json')).toThrow(/Mortgage Tycoon save/);
   });
 
   it('rejects JSON that is not a save', () => {
-    expect(() => parseSave('{"hello":"world"}')).toThrow(/Mortgage Empire save/);
-    expect(() => parseSave('[1,2,3]')).toThrow(/Mortgage Empire save/);
+    expect(() => parseSave('{"hello":"world"}')).toThrow(/Mortgage Tycoon save/);
+    expect(() => parseSave('[1,2,3]')).toThrow(/Mortgage Tycoon save/);
   });
 
   it('rejects a save from an unknown older version we cannot migrate', () => {

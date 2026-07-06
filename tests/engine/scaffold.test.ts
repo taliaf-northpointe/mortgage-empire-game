@@ -8,7 +8,7 @@ import {
 
 describe('M0 scaffold', () => {
   it('exposes the game identity constants', () => {
-    expect(GAME_TITLE).toBe('Mortgage Empire');
+    expect(GAME_TITLE).toBe('Mortgage Tycoon');
   });
 
   it('models the 9 AM – 6 PM working day as 10 ticks (TDD §4)', () => {

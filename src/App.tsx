@@ -5,6 +5,7 @@ import { useGameStore } from './store/gameStore';
 import { AudioSettings } from './ui/screens/AudioSettings/AudioSettings';
 import { CustomerProfile } from './ui/screens/CustomerProfile/CustomerProfile';
 import { Dashboard } from './ui/screens/Dashboard/Dashboard';
+import { Employees } from './ui/screens/Employees/Employees';
 import { LearningCenter } from './ui/screens/LearningCenter/LearningCenter';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
@@ -79,6 +80,9 @@ export function App() {
   }
   if (screen === 'learning') {
     return <LearningCenter onBack={() => setScreen('dashboard')} />;
+  }
+  if (screen === 'employees') {
+    return <Employees onBack={() => setScreen('dashboard')} />;
   }
   if (screen === 'audioSettings') {
     return <AudioSettings onBack={() => setScreen(hasGame ? 'dashboard' : 'mainMenu')} />;

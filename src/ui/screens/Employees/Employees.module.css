@@ -1,0 +1,324 @@
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-body);
+  color: var(--color-cocoa);
+}
+
+.breadcrumb button {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-cocoa);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.breadcrumb strong {
+  color: var(--color-ink);
+}
+
+.dayChip {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-cocoa);
+  background: var(--color-sand);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+}
+
+.teamStats {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+  flex-wrap: wrap;
+}
+
+.teamStats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+}
+
+/* ── Tabs ───────────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tab,
+.tabActive {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--color-cocoa);
+  background: var(--color-cream);
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.tabActive {
+  color: var(--color-paper);
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+}
+
+/* ── Cards ──────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 16px 18px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardTop div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-sunset);
+  color: var(--color-paper);
+  font-weight: 600;
+}
+
+.role {
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+}
+
+.tag_star,
+.tag_readyToPromote,
+.tag_overworked,
+.tag_needsBreak {
+  margin-left: auto;
+  font-size: var(--text-label);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  white-space: nowrap;
+  color: var(--color-paper);
+}
+
+.tag_star {
+  background: var(--color-honey);
+  color: var(--color-ink);
+}
+
+.tag_readyToPromote {
+  background: var(--color-sky);
+}
+
+.tag_overworked {
+  background: var(--color-danger);
+}
+
+.tag_needsBreak {
+  background: var(--color-lavender);
+}
+
+.skillRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star,
+.starOn {
+  color: var(--color-sand);
+  font-size: 15px;
+}
+
+.starOn {
+  color: var(--color-honey);
+}
+
+.skillNumber {
+  margin-left: 8px;
+  font-size: var(--text-label);
+  color: var(--color-cocoa);
+}
+
+.meter {
+  display: grid;
+  grid-template-columns: 72px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+}
+
+.meterTrack {
+  height: 8px;
+  background: var(--color-sand);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.meterFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 300ms ease;
+}
+
+.fill_sage {
+  background: var(--color-sage);
+}
+
+.fill_sky {
+  background: var(--color-sky);
+}
+
+.fill_danger {
+  background: var(--color-danger);
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Hire modal ─────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-ink) 40%, transparent);
+  z-index: 40;
+  padding: 24px;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--color-paper);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 24px 28px;
+  width: min(720px, 100%);
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.modalNote {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+}
+
+.candidates {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.candidateCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  background: var(--color-cream);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px 12px;
+}
+
+.candidateSkill {
+  color: var(--color-honey);
+  font-size: var(--text-caption);
+}
+
+.candidateSalary {
+  font-weight: 600;
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}

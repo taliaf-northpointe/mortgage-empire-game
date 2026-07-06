@@ -1,4 +1,4 @@
-# Mortgage Empire — Technical Design Document
+# Mortgage Tycoon — Technical Design Document
 
 **Version:** 1.0 · July 2026
 **Companion to:** `GAME_DESIGN_DOCUMENT.md` (the "what"); this document is the "how."
@@ -148,7 +148,8 @@ interface Employee {
   id: string;
   name: string;
   role: Role;
-  skill: number;                     // 1–5 (fractional internally, stars in UI)
+  level: number;                     // 1–3; promotion raises it — skill cap = 2.5 + level (M6)
+  skill: number;                     // 1–5 (fractional internally, stars in UI), capped by level
   happiness: number;                 // 0–100
   workload: number;                  // 0–100, derived each tick from assigned loans
   salaryMonthly: number;
@@ -156,7 +157,7 @@ interface Employee {
 }
 
 interface GameState {
-  meta: { saveVersion: 3; playerName: string; officeName: string; createdAt: string };
+  meta: { saveVersion: 4; playerName: string; officeName: string; createdAt: string };
   clock: { day: number; season: 'spring'|'summer'|'fall'|'winter'; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
   stats: { reputation: number; interestRate: number; xp: number; level: number };
@@ -216,6 +217,7 @@ interface DaySummary {
 - `meta.saveVersion` + a `migrations.ts` map keeps old saves loadable as the schema evolves. **Rule:** any change to `GameState` shape requires a migration entry in the same PR.
 - **v1 → v2** (terminology pivot): renames document keys, maps old stages (`documents`→`documentCollection`, `review`→`processing`, `approval`→`underwriting`), splits `Loan.type` into `product`+`purpose` (`firstHome`→FHA·Purchase, `homePurchase`→Conventional·Purchase, `refinance`→Conventional·Refinance, `investment`→Conventional·Purchase), renames the `reviewer` role to `underwriter`, and adds the empty `glossary` map.
 - **v2 → v3** (M5 Customer Profile): adds `Loan.delayed = false` and `Customer.happinessAtWeekStart = happiness`.
+- **v3 → v4** (M6 Employees): adds `Employee.level = 1`.
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 
@@ -234,7 +236,7 @@ interface DaySummary {
 Create `CLAUDE.md` at the repo root containing, at minimum:
 
 ```md
-# Mortgage Empire — agent instructions
+# Mortgage Tycoon — agent instructions
 1. Read docs/GAME_DESIGN_DOCUMENT.md and docs/TECHNICAL_DESIGN_DOCUMENT.md before coding.
 2. The GDD defines behavior; the TDD defines structure. Do not invent mechanics or rename concepts.
 3. Engine code (src/engine) must have zero React imports and no magic numbers (use constants.ts).

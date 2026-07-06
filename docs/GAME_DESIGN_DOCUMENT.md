@@ -1,4 +1,6 @@
-# Mortgage Empire — Game Design Document
+# Mortgage Tycoon — Game Design Document
+
+*(Renamed from "Mortgage Empire", July 2026. The Pencil mockups still show the old title.)*
 
 **Version:** 2.0 · July 2026 — *terminology pivot: authentic mortgage terms + glossary (supersedes v1's "no jargon" rule)*
 **Status:** Design locked to Pencil mockup set v1 (`mortgage_game_design.pen`, 10 screens); §3/§4/§4.1/§5/§12 updated beyond the mockups
@@ -10,7 +12,7 @@
 
 | | |
 |---|---|
-| **Title** | Mortgage Empire |
+| **Title** | Mortgage Tycoon |
 | **Tagline** | *Build your neighborhood. Own the block.* |
 | **Genre** | Cozy 2D isometric management / tycoon |
 | **Positioning pill** | "A Cozy Tycoon Game" |
@@ -19,7 +21,7 @@
 | **Session length** | 10–30 minutes (one to a few in-game days) |
 | **Educational goal** | A player who finishes the tutorial and a few days of play should be able to describe the real home-loan journey — using the real terms (Underwriting, Loan Estimate, Clear to Close) — because the game taught them gently as they played |
 
-**Elevator pitch:** Mortgage Empire is a cozy management game where you guide real, memorable people — not loan numbers — through the journey of buying a home. You grow from a single desk into a regional mortgage company by keeping customers happy, your team healthy, and your pipeline flowing.
+**Elevator pitch:** Mortgage Tycoon is a cozy management game where you guide real, memorable people — not loan numbers — through the journey of buying a home. You grow from a single desk into a regional mortgage company by keeping customers happy, your team healthy, and your pipeline flowing.
 
 **Win condition:** There is no final boss. The long-term goal is transforming one desk in Old Town into a thriving multi-branch company across the Meadowbrook Region, with high reputation and happy customers. Progression milestones (Section 10) provide the sense of "winning."
 
@@ -372,8 +374,10 @@ Day ends ──> End of Day Summary ──> Start Next Day ──> Dashboard (ne
 4. **Gems economy tuning** — earn rates need playtest data; the no-real-money rule is final.
 5. **Save/Share on End-of-Day** — Save is core; Share (image export of the day card) is nice-to-have.
 6. **Audio** — no direction yet. Cozy lo-fi loop + soft UI sounds proposed; needs its own mini style guide.
-7. **v2 terminology pivot (July 2026, decided):** authentic mortgage terms + glossary replace the v1 "no jargon" rule. The Pencil mockups still show v1 labels ("Papers", "Yes/No", Reviewer) — mockups to be refreshed when convenient; this document wins meanwhile. The 17-step real workflow is compressed to 9 board columns with in-stage sub-steps (§3) per the "no excessive sub-steps in the main UI" rule.
-8. **Tutorial copy** (§11) still references v1 wording — rewrite with glossary-linked terms when the Tutorial ships (M8).
+7. **Payroll deduction** is displayed from M6 (Employees header) but only *charged* from M7 (Economy) — charging salaries before lead generation matures would bankrupt every new game.
+8. **Lead generation (M6, decided):** a simple seeded daily spawn (chance per morning, capped active loans, ~12 archetypes) ships with M6 so workload matters; richer referral/event-driven leads arrive with M7 events.
+9. **v2 terminology pivot (July 2026, decided):** authentic mortgage terms + glossary replace the v1 "no jargon" rule. The Pencil mockups still show v1 labels ("Papers", "Yes/No", Reviewer) — mockups to be refreshed when convenient; this document wins meanwhile. The 17-step real workflow is compressed to 9 board columns with in-stage sub-steps (§3) per the "no excessive sub-steps in the main UI" rule.
+10. **Tutorial copy** (§11) still references v1 wording — rewrite with glossary-linked terms when the Tutorial ships (M8).
 
 ---
 

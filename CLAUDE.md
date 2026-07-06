@@ -1,4 +1,4 @@
-# Mortgage Empire — agent instructions
+# Mortgage Tycoon — agent instructions
 
 1. Read `docs/GAME_DESIGN_DOCUMENT.md` and `docs/TECHNICAL_DESIGN_DOCUMENT.md` before coding.
 2. The GDD defines behavior; the TDD defines structure. Do not invent mechanics or rename concepts.
@@ -28,7 +28,7 @@
 - [x] M4 — Pipeline + loan detail
 - [x] M4.5 — Terminology pivot: authentic mortgage terms, 9-stage workflow, glossary + Learning Center (GDD v2, save v2)
 - [x] M5 — Customer Profile (+ audio system groundwork: AudioManager, Settings screen; WAV assets still pending)
-- [ ] M6 — Employees
+- [x] M6 — Employees (+ game renamed to Mortgage Tycoon; + simple lead generation per GDD §13 decision 8)
 - [ ] M7 — Economy + Upgrades + End of Day
 - [ ] M8 — World Map + Tutorial + polish
 

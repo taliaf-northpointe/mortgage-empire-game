@@ -1,4 +1,6 @@
-# Mortgage Empire
+# Mortgage Tycoon
+
+*(Formerly "Mortgage Empire" — the repository name keeps the old slug.)*
 
 > *Build your neighborhood. Own the block.*
 

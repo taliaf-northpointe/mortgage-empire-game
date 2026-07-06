@@ -24,12 +24,19 @@ import {
   UNPROMPTED_DOC_HOURS_EAGER,
   XP_PER_COMPLETED_LOAN,
 } from './constants';
+import { maybeSpawnLead } from './content/leads';
+import {
+  applyDailyMorale,
+  deriveWorkloads,
+  effectiveness,
+  leastLoadedEmployeeId,
+  updateEmployeeTags,
+} from './employees';
 import { missingDocs, nextStage, requirementsMet } from './loans';
 import type { Customer, DaySummary, GameEvent, GameState, Loan, Role } from './types';
 
 function findEmployeeIdForRole(state: GameState, role: Role): string | null {
-  const employee = Object.values(state.employees).find((e) => e.role === role);
-  return employee ? employee.id : null;
+  return leastLoadedEmployeeId(state, role);
 }
 
 function pushEvent(state: GameState, category: GameEvent['category'], title: string, detail: string): void {
@@ -175,11 +182,18 @@ function workLoan(state: GameState, loan: Loan): void {
     }
   }
 
-  // TDD §4c — accumulate progress-hours toward the current stage.
-  loan.progressHours += 1;
+  // TDD §4c — accumulate progress-hours toward the current stage, scaled by
+  // the assigned employee's effectiveness (skill helps; overwork hurts, GDD §5).
+  const worker = state.employees[loan.assignedEmployeeId];
+  const hoursBefore = loan.progressHours;
+  loan.progressHours = Math.round((loan.progressHours + (worker ? effectiveness(worker) : 1)) * 100) / 100;
 
   // Processing sub-steps (GDD §3 v2): Appraisal, then Title Review.
-  if (loan.stage === 'processing' && loan.progressHours === PROCESSING_APPRAISAL_HOURS) {
+  if (
+    loan.stage === 'processing' &&
+    hoursBefore < PROCESSING_APPRAISAL_HOURS &&
+    loan.progressHours >= PROCESSING_APPRAISAL_HOURS
+  ) {
     loan.statusTag = 'Title review';
     const customer = state.customers[loan.customerId];
     pushEvent(
@@ -198,10 +212,13 @@ function workLoan(state: GameState, loan: Loan): void {
 /** One working-hour tick. Returns a new state; the input is never mutated. */
 export function advanceHour(state: GameState): GameState {
   const s = structuredClone(state);
+  deriveWorkloads(s); // workload reflects assignments before anyone works (GDD §5)
   for (const loan of Object.values(s.loans)) {
     if (loan.stage === 'completed') continue;
     workLoan(s, loan);
   }
+  deriveWorkloads(s);
+  updateEmployeeTags(s);
   s.clock.hour += 1;
   return s;
 }
@@ -258,6 +275,12 @@ export function advanceDay(state: GameState): GameState {
       customer.happinessAtWeekStart = customer.happiness;
     }
   }
+
+  // GDD §5 — workload wears on (or restores) the team overnight.
+  applyDailyMorale(s);
+
+  // GDD §2 — more customers arrive (seeded, capped; GDD §13 decision 8).
+  maybeSpawnLead(s);
 
   return s;
 }

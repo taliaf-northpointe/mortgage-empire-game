@@ -45,7 +45,7 @@ export function MainMenu({ onEnterGame, onOpenSettings }: MainMenuProps) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'mortgage-empire-save.json';
+    link.download = 'mortgage-tycoon-save.json';
     link.click();
     URL.revokeObjectURL(url);
   };

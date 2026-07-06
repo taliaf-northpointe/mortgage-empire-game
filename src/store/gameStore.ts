@@ -6,6 +6,13 @@ import { create } from 'zustand';
 import { DAY_END_HOUR } from '../engine/constants';
 import { createStarterState } from '../engine/content/starter';
 import {
+  hireEmployee,
+  promoteEmployee,
+  rebalanceLoans,
+  trainEmployee,
+} from '../engine/employees';
+import type { HireCandidate } from '../engine/employees';
+import {
   contactCustomer,
   moveLoanForward,
   requestAllDocuments,
@@ -40,6 +47,11 @@ interface GameStore {
   /** GDD §4.1 progressive learning */
   unlockTerm(key: string): void;
   learnTerm(key: string): void;
+  /** GDD §5 employee actions (M6) */
+  trainEmployee(employeeId: string): void;
+  promoteEmployee(employeeId: string): void;
+  hireEmployee(candidate: HireCandidate): void;
+  rebalanceLoans(): void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -128,6 +140,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
       },
     });
+  },
+
+  trainEmployee(employeeId) {
+    const { game } = get();
+    if (!game) return;
+    const next = trainEmployee(game, employeeId);
+    if (next !== game) set({ game: next });
+  },
+
+  promoteEmployee(employeeId) {
+    const { game } = get();
+    if (!game) return;
+    const next = promoteEmployee(game, employeeId);
+    if (next !== game) set({ game: next });
+  },
+
+  hireEmployee(candidate) {
+    const { game } = get();
+    if (!game) return;
+    const next = hireEmployee(game, candidate);
+    if (next !== game) set({ game: next });
+  },
+
+  rebalanceLoans() {
+    const { game } = get();
+    if (!game) return;
+    const next = rebalanceLoans(game);
+    if (next !== game) set({ game: next });
   },
 
   learnTerm(key) {

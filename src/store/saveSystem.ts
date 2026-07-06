@@ -39,10 +39,10 @@ export function parseSave(raw: string): GameState {
   try {
     data = JSON.parse(raw);
   } catch {
-    throw new Error("That file doesn't look like a Mortgage Empire save.");
+    throw new Error("That file doesn't look like a Mortgage Tycoon save.");
   }
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    throw new Error("That file doesn't look like a Mortgage Empire save.");
+    throw new Error("That file doesn't look like a Mortgage Tycoon save.");
   }
 
   const migrated = applyMigrations(data as Record<string, unknown>);
@@ -57,7 +57,7 @@ export function parseSave(raw: string): GameState {
     typeof migrated['employees'] === 'object' &&
     typeof migrated['currencies'] === 'object';
   if (!looksValid) {
-    throw new Error("That file doesn't look like a Mortgage Empire save.");
+    throw new Error("That file doesn't look like a Mortgage Tycoon save.");
   }
 
   return migrated as unknown as GameState;
