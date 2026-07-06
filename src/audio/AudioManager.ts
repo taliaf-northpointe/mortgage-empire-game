@@ -1,4 +1,4 @@
-﻿export type AudioSceneId =
+export type AudioSceneId =
   | 'mainMenu'
   | 'dashboard'
   | 'townMap'
@@ -10,18 +10,6 @@
   | 'audioSettings';
 
 export type DynamicMusicIntensity = 'calm' | 'busy' | 'rush';
-
-export type MusicTrackId =
-  | 'mainMenu'
-  | 'officeDashboard'
-  | 'townMap'
-  | 'customerScreen'
-  | 'loanPipeline'
-  | 'upgradeTree'
-  | 'dailySummary'
-  | 'tutorial'
-  | 'celebration'
-  | 'expansion';
 
 export type SoundCueId =
   | 'buttonHover'
@@ -70,7 +58,8 @@ interface AudioState {
   settings: AudioSettings;
   currentScene: AudioSceneId;
   dynamicIntensity: DynamicMusicIntensity;
-  currentTrack: MusicTrackId | null;
+  /** Index into PLAYLIST, or null before music has started. */
+  currentTrack: number | null;
   playingAmbience: 'office' | 'town' | null;
 }
 
@@ -109,17 +98,15 @@ const DEFAULT_SETTINGS: AudioSettings = {
   muteAmbience: false,
 };
 
-const MUSIC_BY_SCENE: Record<AudioSceneId, MusicTrackId> = {
-  mainMenu: 'mainMenu',
-  dashboard: 'officeDashboard',
-  townMap: 'townMap',
-  customer: 'customerScreen',
-  pipeline: 'loanPipeline',
-  upgrades: 'upgradeTree',
-  endOfDay: 'dailySummary',
-  tutorial: 'tutorial',
-  audioSettings: 'officeDashboard',
-};
+/**
+ * Background music is a simple rotating playlist (Talia's three lo-fi
+ * picks): play in order, then repeat. Scene changes no longer switch tracks.
+ */
+export const PLAYLIST: AudioAssetDefinition[] = [
+  { path: '/assets/audio/music/playlist-1.mp3', category: 'music', volume: 0.6, preload: true },
+  { path: '/assets/audio/music/playlist-2.mp3', category: 'music', volume: 0.6, preload: true },
+  { path: '/assets/audio/music/playlist-3.mp3', category: 'music', volume: 0.6, preload: true },
+];
 
 const SOUND_LIBRARY: Record<SoundCueId, AudioAssetDefinition> = {
   buttonHover: { path: '/assets/audio/ui/button-hover.wav', category: 'sfx', volume: 0.1 },
@@ -155,19 +142,6 @@ const SOUND_LIBRARY: Record<SoundCueId, AudioAssetDefinition> = {
   employeeTrainingComplete: { path: '/assets/audio/events/gentle.wav', category: 'sfx', volume: 0.16 },
 };
 
-const MUSIC_LIBRARY: Record<MusicTrackId, AudioAssetDefinition> = {
-  mainMenu: { path: '/assets/audio/music/main-menu.mp3', category: 'music', loop: true, volume: 0.55, preload: true },
-  officeDashboard: { path: '/assets/audio/music/office-dashboard.mp3', category: 'music', loop: true, volume: 0.6, preload: true },
-  townMap: { path: '/assets/audio/music/town-map.mp3', category: 'music', loop: true, volume: 0.55, preload: true },
-  customerScreen: { path: '/assets/audio/music/customer-screen.mp3', category: 'music', loop: true, volume: 0.5, preload: true },
-  loanPipeline: { path: '/assets/audio/music/loan-pipeline.mp3', category: 'music', loop: true, volume: 0.55, preload: true },
-  upgradeTree: { path: '/assets/audio/music/upgrade-screen.mp3', category: 'music', loop: true, volume: 0.55, preload: true },
-  dailySummary: { path: '/assets/audio/music/daily-summary.mp3', category: 'music', loop: true, volume: 0.5, preload: true },
-  tutorial: { path: '/assets/audio/music/tutorial.mp3', category: 'music', loop: true, volume: 0.5, preload: true },
-  celebration: { path: '/assets/audio/music/celebration.mp3', category: 'music', loop: false, volume: 0.6, preload: true },
-  expansion: { path: '/assets/audio/music/expansion.mp3', category: 'music', loop: false, volume: 0.6, preload: true },
-};
-
 const AMBIENCE_LIBRARY = {
   office: { path: '/assets/audio/ambience/office.wav', category: 'ambience' as const, loop: true, volume: 0.25, preload: true },
   town: { path: '/assets/audio/ambience/town.wav', category: 'ambience' as const, loop: true, volume: 0.2, preload: true },
@@ -179,11 +153,9 @@ export class AudioManager {
   private listeners = new Set<() => void>();
   private assetCache = new Map<string, HTMLAudioElement>();
   private currentMusicElement: HTMLAudioElement | null = null;
-  private currentMusicTrack: MusicTrackId | null = null;
   private ambienceElement: HTMLAudioElement | null = null;
   private ambienceMode: 'office' | 'town' | null = null;
-  private transitionTimer: number | null = null;
-  private celebrationTimer: number | null = null;
+  private gestureHooked = false;
 
   private constructor() {
     this.state = {
@@ -218,27 +190,40 @@ export class AudioManager {
   }
 
   initialize(): void {
-    this.preloadCommonAssets();
-    this.playSceneMusic(this.state.currentScene);
+    if (!this.canPlayAudio()) return;
+    // Browsers block playback before the first user gesture — start (or
+    // resume) the playlist on the first click instead.
+    if (!this.gestureHooked && typeof window !== 'undefined') {
+      this.gestureHooked = true;
+      window.addEventListener(
+        'pointerdown',
+        () => {
+          this.ensureMusic();
+          if (this.ambienceMode) this.ambienceElement?.play().catch(() => undefined);
+        },
+        { once: true },
+      );
+    }
   }
 
   setScene(scene: AudioSceneId): void {
     this.state.currentScene = scene;
+    if (this.shouldPlayAmbience(scene)) {
+      this.playAmbience('office');
+    } else {
+      this.stopAmbience();
+    }
+    this.ensureMusic();
     this.notify();
-    this.playSceneMusic(scene);
   }
 
   updateDynamicState(state: DynamicMusicState): void {
-    const nextIntensity = state.hasCelebration ? 'busy' : this.resolveIntensity(state.activeLoans);
-    this.state.dynamicIntensity = nextIntensity;
-    this.notify();
-    this.playSceneMusic(this.state.currentScene);
-  }
-
-  resolveMusicTrack(scene: AudioSceneId, _intensity: DynamicMusicIntensity): MusicTrackId {
-    // Intensity variants of each track are a future refinement — for now
-    // every scene maps to one preset (dynamic intensity still drives state).
-    return MUSIC_BY_SCENE[scene] ?? 'officeDashboard';
+    const next = state.hasCelebration ? 'busy' : this.resolveIntensity(state.activeLoans);
+    if (next !== this.state.dynamicIntensity) {
+      this.state.dynamicIntensity = next;
+      this.notify();
+    }
+    this.ensureMusic();
   }
 
   shouldPlayAmbience(scene: AudioSceneId): boolean {
@@ -257,6 +242,7 @@ export class AudioManager {
     if (target === 'sfx') this.state.settings.muteSfx = !this.state.settings.muteSfx;
     if (target === 'ambience') this.state.settings.muteAmbience = !this.state.settings.muteAmbience;
     this.syncAllAudioVolumes();
+    if (target === 'music' && !this.state.settings.muteMusic) this.ensureMusic();
     this.persistSettings();
     this.notify();
   }
@@ -282,91 +268,52 @@ export class AudioManager {
 
   playCue(cue: SoundCueId): void {
     if (this.state.settings.muteSfx || this.state.settings.masterVolume <= 0) return;
+    if (!this.canPlayAudio()) return;
     const definition = SOUND_LIBRARY[cue];
     if (!definition) return;
-    this.playAsset(definition, cue, { loop: false, volume: definition.volume });
-  }
-
-  playSceneMusic(scene: AudioSceneId): void {
-    const track = this.resolveMusicTrack(scene, this.state.dynamicIntensity);
-    const nextTrack = MUSIC_LIBRARY[track];
-    if (!nextTrack) return;
-    const shouldUseAmbience = this.shouldPlayAmbience(scene);
-    this.state.currentScene = scene;
-    this.state.currentTrack = track;
-    this.notify();
-    if (shouldUseAmbience) {
-      this.playAmbience(this.state.currentScene === 'dashboard' || this.state.currentScene === 'pipeline' || this.state.currentScene === 'audioSettings' ? 'office' : 'town');
-    } else {
-      this.stopAmbience();
-    }
-    this.transitionToTrack(track);
-  }
-
-  triggerCelebration(kind: 'milestone' | 'loanClosing' | 'branchOpened'): void {
-    const flourishTrack = kind === 'branchOpened' ? 'expansion' : 'celebration';
-    const duration = kind === 'loanClosing' ? 1800 : 1500;
-    if (this.celebrationTimer) window.clearTimeout(this.celebrationTimer);
-    this.playCue(kind === 'loanClosing' ? 'closingCompleted' : kind === 'branchOpened' ? 'newBranchOpened' : 'achievementUnlocked');
-    this.transitionToTrack(flourishTrack, 350, duration);
-    this.celebrationTimer = window.setTimeout(() => {
-      this.playSceneMusic(this.state.currentScene);
-    }, duration);
-  }
-
-  private transitionToTrack(trackId: MusicTrackId, fadeDuration = 650, holdForMs?: number): void {
-    if (!this.canPlayAudio()) return;
-    // Already playing this track — don't restart it (the dynamic-state hook
-    // fires every sim tick; restarting would stutter the music).
-    if (this.currentMusicTrack === trackId && this.currentMusicElement && !this.currentMusicElement.paused) {
-      return;
-    }
-    const definition = MUSIC_LIBRARY[trackId];
-    if (!definition) return;
-    const targetElement = this.getOrCreateAudio(`music:${trackId}`, definition.path, {
-      loop: definition.loop,
-      category: 'music',
+    const audio = this.getOrCreateAudio(`sfx:${definition.path}`, definition.path, {
+      category: 'sfx',
+      volume: definition.volume,
     });
-    targetElement.currentTime = 0;
-    targetElement.volume = 0;
-    void targetElement.play().catch(() => undefined);
+    audio.currentTime = 0;
+    void audio.play().catch(() => undefined);
+  }
 
-    const previousElement = this.currentMusicElement;
-    const previousTrack = this.currentMusicTrack;
-    this.currentMusicElement = targetElement;
-    this.currentMusicTrack = trackId;
-    this.state.currentTrack = trackId;
+  /** Celebration moments play a flourish cue over the playlist. */
+  triggerCelebration(kind: 'milestone' | 'loanClosing' | 'branchOpened'): void {
+    this.playCue(
+      kind === 'loanClosing' ? 'closingCompleted' : kind === 'branchOpened' ? 'newBranchOpened' : 'achievementUnlocked',
+    );
+  }
+
+  /** The playlist index that should play next after `index` (in order, repeat). */
+  nextTrackIndex(index: number): number {
+    return (index + 1) % PLAYLIST.length;
+  }
+
+  /** Start the playlist if nothing is playing (safe to call any time). */
+  private ensureMusic(): void {
+    if (!this.canPlayAudio()) return;
+    if (this.state.settings.muteMusic || this.state.settings.masterVolume <= 0) return;
+    if (this.currentMusicElement && !this.currentMusicElement.paused) return;
+    this.playTrack(this.state.currentTrack ?? 0);
+  }
+
+  private playTrack(index: number): void {
+    const definition = PLAYLIST[index];
+    if (!definition) return;
+    const audio = this.getOrCreateAudio(`music:${index}`, definition.path, {
+      category: 'music',
+      volume: definition.volume,
+      loop: false,
+    });
+    audio.onended = () => this.playTrack(this.nextTrackIndex(index));
+    audio.currentTime = 0;
+    audio.volume = this.getEffectiveVolume('music', definition.volume);
+    this.currentMusicElement = audio;
+    this.state.currentTrack = index;
     this.notify();
-
-    if (this.transitionTimer) window.clearInterval(this.transitionTimer);
-
-    const startVolume = this.getCategoryVolume('music');
-    const startTime = performance.now();
-    this.transitionTimer = window.setInterval(() => {
-      const elapsed = performance.now() - startTime;
-      const progress = Math.min(elapsed / fadeDuration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      if (previousElement && previousTrack !== trackId) {
-        previousElement.volume = Math.max(0, startVolume * (1 - eased));
-      }
-      targetElement.volume = startVolume * eased;
-      if (progress >= 1) {
-        if (previousElement && previousElement !== targetElement && previousTrack !== trackId) {
-          previousElement.pause();
-          previousElement.currentTime = 0;
-        }
-        window.clearInterval(this.transitionTimer!);
-        this.transitionTimer = null;
-        if (holdForMs && holdForMs > 0) {
-          this.transitionTimer = window.setInterval(() => {
-            if (this.currentMusicTrack === trackId) {
-              window.clearInterval(this.transitionTimer!);
-              this.transitionTimer = null;
-            }
-          }, holdForMs);
-        }
-      }
-    }, 16);
+    void audio.play().catch(() => undefined);
   }
 
   private playAmbience(mode: 'office' | 'town'): void {
@@ -375,24 +322,20 @@ export class AudioManager {
       this.stopAmbience();
       return;
     }
-    const definition = AMBIENCE_LIBRARY[mode];
-    if (!definition) return;
     if (this.ambienceElement && this.ambienceMode === mode) {
-      this.ambienceElement.play().catch(() => undefined);
+      void this.ambienceElement.play().catch(() => undefined);
       this.state.playingAmbience = mode;
-      this.notify();
       return;
     }
+    const definition = AMBIENCE_LIBRARY[mode];
     const ambience = this.getOrCreateAudio(`ambience:${mode}`, definition.path, {
-      loop: definition.loop,
       category: 'ambience',
+      volume: definition.volume,
+      loop: true,
     });
-    ambience.currentTime = 0;
-    ambience.loop = true;
     this.ambienceElement = ambience;
     this.ambienceMode = mode;
     this.state.playingAmbience = mode;
-    this.notify();
     void ambience.play().catch(() => undefined);
   }
 
@@ -404,21 +347,13 @@ export class AudioManager {
     this.ambienceElement = null;
     this.ambienceMode = null;
     this.state.playingAmbience = null;
-    this.notify();
   }
 
-  private playAsset(definition: AudioAssetDefinition, key: string, options?: { loop?: boolean; volume?: number }): void {
-    if (!this.canPlayAudio()) return;
-    const audio = this.getOrCreateAudio(`sfx:${key}`, definition.path, {
-      loop: options?.loop ?? false,
-      category: definition.category,
-      volume: options?.volume ?? definition.volume,
-    });
-    audio.currentTime = 0;
-    void audio.play().catch(() => undefined);
-  }
-
-  private getOrCreateAudio(key: string, path: string, options: { loop?: boolean; category: 'music' | 'sfx' | 'ambience'; volume?: number }): HTMLAudioElement {
+  private getOrCreateAudio(
+    key: string,
+    path: string,
+    options: { category: 'music' | 'sfx' | 'ambience'; loop?: boolean; volume?: number },
+  ): HTMLAudioElement {
     const existing = this.assetCache.get(key);
     if (existing) {
       existing.loop = options.loop ?? existing.loop;
@@ -441,38 +376,19 @@ export class AudioManager {
     return settings.muteSfx ? 0 : master * settings.sfxVolume * volume;
   }
 
-  private getCategoryVolume(category: 'music' | 'sfx' | 'ambience'): number {
-    return this.getEffectiveVolume(category);
-  }
-
   private syncAllAudioVolumes(): void {
     for (const [key, audio] of this.assetCache.entries()) {
       if (key.startsWith('music:')) {
-        audio.volume = this.getCategoryVolume('music');
+        const index = Number(key.slice('music:'.length));
+        audio.volume = this.getEffectiveVolume('music', PLAYLIST[index]?.volume);
       } else if (key.startsWith('ambience:')) {
-        audio.volume = this.getCategoryVolume('ambience');
+        audio.volume = this.getEffectiveVolume('ambience', 0.25);
       } else {
-        audio.volume = this.getCategoryVolume('sfx');
+        audio.volume = this.getEffectiveVolume('sfx', 0.5);
       }
     }
-    if (this.currentMusicElement) {
-      this.currentMusicElement.volume = this.getCategoryVolume('music');
-    }
-    if (this.ambienceElement) {
-      this.ambienceElement.volume = this.getCategoryVolume('ambience');
-    }
-  }
-
-  private preloadCommonAssets(): void {
-    if (!this.canPlayAudio()) return;
-    for (const definition of Object.values(MUSIC_LIBRARY)) {
-      this.getOrCreateAudio(`music:${definition.path}`, definition.path, { category: 'music', loop: definition.loop, volume: definition.volume });
-    }
-    for (const definition of Object.values(AMBIENCE_LIBRARY)) {
-      this.getOrCreateAudio(`ambience:${definition.path}`, definition.path, { category: 'ambience', loop: definition.loop, volume: definition.volume });
-    }
-    for (const definition of Object.values(SOUND_LIBRARY)) {
-      this.getOrCreateAudio(`sfx:${definition.path}`, definition.path, { category: definition.category, volume: definition.volume });
+    if (this.state.settings.muteMusic && this.currentMusicElement) {
+      this.currentMusicElement.pause();
     }
   }
 

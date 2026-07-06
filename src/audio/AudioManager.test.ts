@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AudioManager } from './AudioManager';
+import { AudioManager, PLAYLIST } from './AudioManager';
 
 describe('AudioManager', () => {
   beforeEach(() => {
@@ -29,16 +29,13 @@ describe('AudioManager', () => {
     expect(saved.ambienceVolume).toBe(0.6);
   });
 
-  it('maps scenes to the expected music presets', () => {
+  it('rotates the three-song playlist in order, then repeats', () => {
     const manager = AudioManager.getInstance();
 
-    const mainMenu = manager.resolveMusicTrack('mainMenu', 'calm');
-    const dashboard = manager.resolveMusicTrack('dashboard', 'busy');
-    const summary = manager.resolveMusicTrack('endOfDay', 'calm');
-
-    expect(mainMenu).toBe('mainMenu');
-    expect(dashboard).toBe('officeDashboard');
-    expect(summary).toBe('dailySummary');
+    expect(PLAYLIST).toHaveLength(3);
+    expect(manager.nextTrackIndex(0)).toBe(1);
+    expect(manager.nextTrackIndex(1)).toBe(2);
+    expect(manager.nextTrackIndex(2)).toBe(0);
   });
 
   it('raises the dynamic intensity when the office gets busier', () => {
