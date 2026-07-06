@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** Hand-picked real recordings — never overwritten by this generator. */
-const PRESERVE = new Set(['ui/button-click.wav']);
+const PRESERVE = new Set(['ui/button-click.wav', 'ui/button-hover.wav']);
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'public', 'assets', 'audio');
