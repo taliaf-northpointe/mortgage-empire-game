@@ -1,13 +1,8 @@
 ﻿import type { Employee } from '../../../engine/types';
+import { CozyHands, CozyPerson } from './CozyPerson';
 import styles from './Dashboard.module.css';
 
 const SHIRTS = ['var(--color-sky)', 'var(--color-sage)', 'var(--color-lavender)', 'var(--color-rose)'];
-const HAIR = ['var(--color-cocoa)', 'var(--color-ink)', 'var(--color-honey)', 'var(--color-terracotta)'];
-const SKIN = [
-  'var(--color-cream)',
-  'color-mix(in srgb, var(--color-cocoa) 22%, var(--color-cream))',
-  'color-mix(in srgb, var(--color-cocoa) 45%, var(--color-cream))',
-];
 const DESKS_PER_ROW = 4;
 
 const WALL = 'color-mix(in srgb, var(--color-sky) 22%, var(--color-paper))';
@@ -116,9 +111,7 @@ export function OfficeScene({ employees }: { employees: Employee[] }) {
             x={x}
             y={y}
             name={employee.name.split(' ')[0] ?? employee.name}
-            shirt={SHIRTS[i % SHIRTS.length] ?? 'var(--color-sky)'}
-            hair={HAIR[i % HAIR.length] ?? 'var(--color-cocoa)'}
-            skin={SKIN[i % SKIN.length] ?? 'var(--color-cream)'}
+            seed={employee.id}
             slow={i % 2 === 1}
             unhappy={employee.tag === 'needsBreak' || employee.tag === 'overworked'}
           />
@@ -143,18 +136,14 @@ function Workstation({
   x,
   y,
   name,
-  shirt,
-  hair,
-  skin,
+  seed,
   slow,
   unhappy,
 }: {
   x: number;
   y: number;
   name: string;
-  shirt: string;
-  hair: string;
-  skin: string;
+  seed: string;
   slow: boolean;
   unhappy: boolean;
 }) {
@@ -162,23 +151,7 @@ function Workstation({
     <g>
       {/* person behind the desk */}
       <g className={slow ? styles.bobSlow : styles.bob}>
-        <rect x={x + 48} y={y - 34} width={44} height={40} rx={14} fill={shirt} />
-        <circle cx={x + 70} cy={y - 46} r={17} fill={skin} stroke="var(--color-cocoa)" strokeWidth="1.5" />
-        {/* hair */}
-        <path
-          d={`M ${x + 53} ${y - 48} Q ${x + 55} ${y - 66} ${x + 70} ${y - 64} Q ${x + 85} ${y - 66} ${x + 87} ${y - 48} Q ${x + 80} ${y - 58} ${x + 70} ${y - 57} Q ${x + 60} ${y - 58} ${x + 53} ${y - 48} Z`}
-          fill={hair}
-        />
-        <circle cx={x + 64} cy={y - 48} r={1.8} fill="var(--color-ink)" />
-        <circle cx={x + 76} cy={y - 48} r={1.8} fill="var(--color-ink)" />
-        {/* rosy cheeks */}
-        <circle cx={x + 60} cy={y - 43} r={2.5} fill="var(--color-rose)" opacity="0.35" />
-        <circle cx={x + 80} cy={y - 43} r={2.5} fill="var(--color-rose)" opacity="0.35" />
-        {unhappy ? (
-          <path d={`M ${x + 65} ${y - 38} Q ${x + 70} ${y - 42} ${x + 75} ${y - 38}`} stroke="var(--color-ink)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        ) : (
-          <path d={`M ${x + 65} ${y - 41} Q ${x + 70} ${y - 37} ${x + 75} ${y - 41}`} stroke="var(--color-ink)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        )}
+        <CozyPerson x={x + 70} y={y - 42} seed={seed} unhappy={unhappy} />
       </g>
 
       {/* iso desk */}
@@ -196,10 +169,12 @@ function Workstation({
         points={`${x + 140},${y + 26} ${x + 70},${y + 56} ${x + 70},${y + 76} ${x + 140},${y + 46}`}
         fill="color-mix(in srgb, var(--color-sand) 70%, var(--color-cocoa))"
       />
-      {/* monitor + mug + papers */}
-      <rect x={x + 56} y={y - 2} width={28} height={20} rx={5} fill="var(--color-ink)" opacity="0.85" />
-      <rect x={x + 59} y={y + 1} width={22} height={14} rx={3} fill="var(--color-sky)" opacity="0.7" />
-      <circle cx={x + 104} cy={y + 22} r={5} fill="var(--color-rose)" opacity="0.85" />
+      {/* monitor + keyboard + hands + mug + papers */}
+      <rect x={x + 56} y={y - 6} width={28} height={20} rx={5} fill="var(--color-ink)" opacity="0.85" />
+      <rect x={x + 59} y={y - 3} width={22} height={14} rx={3} fill="var(--color-sky)" opacity="0.7" />
+      <rect x={x + 55} y={y + 20} width={30} height={7} rx={3} fill="color-mix(in srgb, var(--color-cocoa) 30%, var(--color-paper))" />
+      <CozyHands x={x + 70} y={y + 24} seed={seed} />
+      <circle cx={x + 106} cy={y + 24} r={5} fill="var(--color-rose)" opacity="0.85" />
       <rect x={x + 22} y={y + 16} width={18} height={10} rx={2} fill="var(--color-paper)" stroke="var(--color-sand)" transform={`rotate(-8 ${x + 31} ${y + 21})`} />
 
       <text x={x + 70} y={y + 96} textAnchor="middle" className={styles.deskLabel}>
