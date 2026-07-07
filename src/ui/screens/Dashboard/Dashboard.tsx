@@ -4,6 +4,7 @@ import {
   Coins,
   FolderKanban,
   Heart,
+  HelpCircle,
   Home,
   Map,
   Pause,
@@ -35,9 +36,11 @@ interface DashboardProps {
     screen: 'pipeline' | 'learning' | 'employees' | 'upgrades' | 'map' | 'memoryWall' | 'audioSettings',
   ): void;
   onExitToMenu(): void;
+  /** Reopen the guided tour (replay mode — no rewards, no save changes). */
+  onReplayTutorial(): void;
 }
 
-export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: DashboardProps) {
+export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu, onReplayTutorial }: DashboardProps) {
   const game = useGameStore((s) => s.game);
   if (!game) return null;
 
@@ -72,6 +75,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           icon={<FolderKanban size={17} />}
           label="Pipeline"
           badge={activeLoans}
+          tutorialId="nav-pipeline"
           onClick={() => {
             audioManager.playCue('menuNavigation');
             onNavigate('pipeline');
@@ -80,6 +84,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
         <NavItem
           icon={<Sparkles size={17} />}
           label="Upgrades"
+          tutorialId="nav-upgrades"
           onClick={() => {
             audioManager.playCue('menuNavigation');
             onNavigate('upgrades');
@@ -97,6 +102,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           icon={<Heart size={17} />}
           label="Wall of Homes"
           badge={game.memoryWall.length || undefined}
+          tutorialId="nav-wall"
           onClick={() => {
             audioManager.playCue('menuNavigation');
             onNavigate('memoryWall');
@@ -136,7 +142,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
       </nav>
 
       <header className={styles.kpiBar}>
-        <span className={styles.dayChip}>
+        <span className={styles.dayChip} data-tutorial="clock">
           DAY {clock.day} · {clock.season.toUpperCase()} · {(WEEKDAYS[clock.weekday] ?? '').toUpperCase()}
         </span>
         <span className={styles.hourChip}>
@@ -163,7 +169,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           </span>
         )}
 
-        <div className={styles.kpis}>
+        <div className={styles.kpis} data-tutorial="kpis">
           <Kpi icon={<Coins size={15} />} label="Money" value={`$${currencies.coins.toLocaleString('en-US')}`} />
           <Kpi icon={<Star size={15} />} label="Reputation" value={`${stats.reputation}/100`} />
           <Kpi icon={<Briefcase size={15} />} label="Active Loans" value={String(activeLoans)} />
@@ -175,7 +181,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           />
         </div>
 
-        <div className={styles.speedControls}>
+        <div className={styles.speedControls} data-tutorial="speed">
           <button
             type="button"
             className={speed === 0 ? styles.speedActive : styles.speedButton}
@@ -196,9 +202,21 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          className={styles.helpButton}
+          onClick={() => {
+            audioManager.playCue('windowOpen');
+            onReplayTutorial();
+          }}
+          title="Replay the guided tour"
+          aria-label="Replay the guided tour"
+        >
+          <HelpCircle size={16} />
+        </button>
       </header>
 
-      <main className={styles.stage}>
+      <main className={styles.stage} data-tutorial="office">
         <OfficeScene employees={employees} stage={officeStage(game)} />
       </main>
 
@@ -213,6 +231,7 @@ function NavItem({
   badge,
   active = false,
   soon = false,
+  tutorialId,
   onClick,
 }: {
   icon: React.ReactNode;
@@ -220,6 +239,8 @@ function NavItem({
   badge?: number;
   active?: boolean;
   soon?: boolean;
+  /** Lets the tutorial spotlight this entry ([data-tutorial]). */
+  tutorialId?: string;
   onClick?(): void;
 }) {
   return (
@@ -228,6 +249,7 @@ function NavItem({
       className={active ? styles.navItemActive : styles.navItem}
       disabled={soon}
       title={soon ? 'Coming in a later milestone' : undefined}
+      data-tutorial={tutorialId}
       onClick={onClick}
     >
       {icon}

@@ -389,6 +389,25 @@
   border-color: var(--color-terracotta);
 }
 
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  color: var(--color-cocoa);
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.helpButton:hover {
+  color: var(--color-ink);
+  box-shadow: var(--shadow-soft);
+}
+
 /* GDD §6 — active office mishap (wifi down, printer jam…) */
 .disruptionChip {
   font-size: var(--text-label);

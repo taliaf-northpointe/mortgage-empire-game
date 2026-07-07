@@ -36,6 +36,7 @@ export function App() {
   const [screen, setScreen] = useState<ScreenId>('mainMenu');
   const [speed, setSpeed] = useState<Speed>(1);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [replayingTutorial, setReplayingTutorial] = useState(false);
   const hasGame = useGameStore((s) => s.game !== null);
   const game = useGameStore((s) => s.game);
   const showEndOfDay = useGameStore((s) => s.showEndOfDay);
@@ -69,10 +70,11 @@ export function App() {
   const tutorialActive = hasGame && game !== null && !game.meta.tutorialDone;
 
   useEffect(() => {
-    if (!hasGame || screen === 'mainMenu' || speed === 0 || showEndOfDay || tutorialActive) return;
+    if (!hasGame || screen === 'mainMenu' || speed === 0 || showEndOfDay || tutorialActive || replayingTutorial)
+      return;
     const id = window.setInterval(() => useGameStore.getState().tick(), REAL_MS_PER_HOUR / speed);
     return () => window.clearInterval(id);
-  }, [hasGame, screen, speed, showEndOfDay, tutorialActive]);
+  }, [hasGame, screen, speed, showEndOfDay, tutorialActive, replayingTutorial]);
 
   const content = (() => {
     // M7 — the world pauses on the End-of-Day summary (GDD §11 screen 8).
@@ -128,8 +130,12 @@ export function App() {
           onSpeedChange={setSpeed}
           onNavigate={setScreen}
           onExitToMenu={() => setScreen('mainMenu')}
+          onReplayTutorial={() => setReplayingTutorial(true)}
         />
         {tutorialActive && <TutorialOverlay />}
+        {!tutorialActive && replayingTutorial && (
+          <TutorialOverlay onClose={() => setReplayingTutorial(false)} />
+        )}
       </>
     );
   })();

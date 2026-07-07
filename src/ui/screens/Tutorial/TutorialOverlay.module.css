@@ -1,4 +1,5 @@
-.overlay {
+.overlay,
+.overlaySpotlit {
   position: fixed;
   inset: 0;
   display: flex;
@@ -7,6 +8,36 @@
   background: color-mix(in srgb, var(--color-ink) 45%, transparent);
   z-index: 70;
   padding: 24px;
+}
+
+/* When a step spotlights part of the Dashboard, the dimming comes from the
+   spotlight's giant box-shadow instead, and the card slides to the bottom so
+   the highlighted element stays visible. */
+.overlaySpotlit {
+  background: transparent;
+  align-items: flex-end;
+  padding-bottom: 32px;
+}
+
+.spotlight {
+  position: fixed;
+  border: 3px solid var(--color-honey);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 0 0 100vmax color-mix(in srgb, var(--color-ink) 45%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--color-honey) 70%, transparent);
+  pointer-events: none;
+  transition: left 220ms ease, top 220ms ease, width 220ms ease, height 220ms ease;
+  animation: spotlightPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes spotlightPulse {
+  from {
+    border-color: var(--color-honey);
+  }
+  to {
+    border-color: var(--color-sunset);
+  }
 }
 
 .progressTrack {
