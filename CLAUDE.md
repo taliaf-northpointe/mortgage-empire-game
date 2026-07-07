@@ -14,7 +14,7 @@
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Vite dev server (app served at `/mortgage-empire-game/`) |
+| `npm run dev` | Vite dev server (app served at `/mortgage-tycoon/`) |
 | `npm run typecheck` | TypeScript strict check, no emit |
 | `npm test` | Vitest, headless engine tests in `tests/` |
 | `npm run build` | Typecheck + production build to `dist/` |

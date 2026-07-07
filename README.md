@@ -1,6 +1,6 @@
 # Mortgage Tycoon
 
-*(Formerly "Mortgage Empire" — the repository name keeps the old slug.)*
+*(Formerly "Mortgage Empire" — save keys keep the old name so long-time players' progress survives.)*
 
 > *Build your neighborhood. Own the block.*
 
@@ -13,7 +13,7 @@
 | **Audience** | Casual players 16+ — no mortgage knowledge required |
 | **Session length** | 10–30 minutes (one to a few in-game days) |
 | **Stack** | TypeScript (strict) · React 18 + Vite · Zustand · CSS Modules + design tokens |
-| **Status** | **v1 + the Solo Founder update** (M0–M9 and beyond) — play it at [taliaf-northpointe.github.io/mortgage-empire-game](https://taliaf-northpointe.github.io/mortgage-empire-game/) |
+| **Status** | **v1 + the Solo Founder update** (M0–M9 and beyond) — play it at [taliaf-northpointe.github.io/mortgage-tycoon](https://taliaf-northpointe.github.io/mortgage-tycoon/) |
 
 ## You start alone
 

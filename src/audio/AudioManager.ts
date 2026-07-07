@@ -80,7 +80,7 @@ const STORAGE_KEY = 'mortgage-empire.audio';
 
 /**
  * The app is served under a base path on GitHub Pages
- * (/mortgage-empire-game/), so absolute asset paths must be prefixed —
+ * (/mortgage-tycoon/), so absolute asset paths must be prefixed —
  * otherwise every audio request 404s in production.
  */
 function resolveAssetPath(path: string): string {

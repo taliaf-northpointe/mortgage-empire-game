@@ -59,7 +59,7 @@ Why this matters for AI-assisted development: the engine can be built and unit-t
 ### 2.1 Folder structure
 
 ```
-mortgage-empire-game/
+mortgage-tycoon/
 ├── docs/
 │   ├── GAME_DESIGN_DOCUMENT.md
 │   └── TECHNICAL_DESIGN_DOCUMENT.md
