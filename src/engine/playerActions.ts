@@ -12,6 +12,7 @@ import {
   DOC_DISPLAY_NAME,
   HAPPINESS_MAX,
   QUIZ_XP,
+  REPUTATION_TRUST_FACTOR,
   REQUEST_NAG_HAPPINESS_COST,
   TRUST_MAX,
   TUTORIAL_RESEARCH,
@@ -72,22 +73,29 @@ export function requestAllDocuments(state: GameState, loanId: string): GameState
   for (const key of stillMissing) l.documents[key] = 'requested';
   l.statusTag = l.stage === 'documentCollection' ? missingDocsTag(l) : l.statusTag;
 
+  // Irritation escalates (playtest 2026-07-06 #2): the first reminder is a
+  // nudge; the fourth is a problem. Cost = base × how many times they've
+  // already been re-asked.
+  const nagCost = customer ? REQUEST_NAG_HAPPINESS_COST * ((customer.nagCount ?? 0) + 1) : 0;
+
   if (stillMissing.length === 0 && alreadyRequested) {
     // pure nag — everything was already asked for
     if (customer) {
-      customer.happiness = Math.max(0, customer.happiness - REQUEST_NAG_HAPPINESS_COST);
+      customer.nagCount = (customer.nagCount ?? 0) + 1;
+      customer.happiness = Math.max(0, customer.happiness - nagCost);
       pushEvent(
         s,
         'customers',
         `${customer.name} is already on it`,
-        `They know! A gentle reminder costs a little goodwill (−${REQUEST_NAG_HAPPINESS_COST} happiness).`,
+        `They know! Each extra reminder wears thinner (−${nagCost} happiness this time).`,
       );
     }
     return s;
   }
 
   if (alreadyRequested && customer) {
-    customer.happiness = Math.max(0, customer.happiness - REQUEST_NAG_HAPPINESS_COST);
+    customer.nagCount = (customer.nagCount ?? 0) + 1;
+    customer.happiness = Math.max(0, customer.happiness - nagCost);
   }
   pushEvent(
     s,
@@ -110,8 +118,12 @@ export function contactCustomer(state: GameState, loanId: string): GameState {
   const c = s.customers[loan.customerId];
   if (!l || !c) return state;
   c.happiness = Math.min(HAPPINESS_MAX, c.happiness + CONTACT_HAPPINESS_BOOST);
-  // Customer Experience upgrades deepen every friendly chat (GDD §7).
-  const trustGain = CONTACT_TRUST_BOOST + CX_TRUST_BONUS_PER_TIER * tiersOwned(s, 'customerExperience');
+  // Customer Experience upgrades deepen every friendly chat (GDD §7), and a
+  // strong reputation makes your word count for more (playtest 2026-07-06 #2).
+  const trustGain =
+    CONTACT_TRUST_BOOST +
+    CX_TRUST_BONUS_PER_TIER * tiersOwned(s, 'customerExperience') +
+    (s.stats.reputation / 100) * REPUTATION_TRUST_FACTOR;
   c.trust = Math.min(TRUST_MAX, Math.round((c.trust + trustGain) * 100) / 100);
   l.progressHours = Math.max(0, l.progressHours - CONTACT_TIME_COST_HOURS); // the small time cost
 

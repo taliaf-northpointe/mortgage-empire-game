@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Scale, Smile, UserPlus, Users, Wallet } from 'lucide-react';
-import { ROLE_DISPLAY_NAME, TRAINING_COST, WEEKDAYS } from '../../../engine/constants';
+import { FIRE_TEAM_HAPPINESS_COST, ROLE_DISPLAY_NAME, TRAINING_COST, WEEKDAYS } from '../../../engine/constants';
 import { generateCandidates } from '../../../engine/content/candidates';
-import { assignedLoanCount, skillCap } from '../../../engine/employees';
+import { assignedLoanCount, fireBlockedReason, skillCap } from '../../../engine/employees';
 import type { HireCandidate } from '../../../engine/employees';
 import type { Employee, Role } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
@@ -34,6 +34,7 @@ export function Employees({ onBack }: { onBack(): void }) {
   const trainEmployee = useGameStore((s) => s.trainEmployee);
   const promoteEmployee = useGameStore((s) => s.promoteEmployee);
   const hireEmployee = useGameStore((s) => s.hireEmployee);
+  const fireEmployee = useGameStore((s) => s.fireEmployee);
   const rebalanceLoans = useGameStore((s) => s.rebalanceLoans);
   const [tab, setTab] = useState<Tab>('all');
   const [hiring, setHiring] = useState(false);
@@ -146,6 +147,18 @@ export function Employees({ onBack }: { onBack(): void }) {
                 title="Available when skill hits the level cap"
               >
                 Promote
+              </Button>
+              <Button
+                variant="ghost"
+                className={styles.letGo}
+                onClick={() => fireEmployee(employee.id)}
+                disabled={fireBlockedReason(game, employee.id) !== null}
+                title={
+                  fireBlockedReason(game, employee.id) ??
+                  `Save ${moneyFull(employee.salaryMonthly)}/mo — but everyone else loses ${FIRE_TEAM_HAPPINESS_COST} happiness`
+                }
+              >
+                Let go
               </Button>
             </div>
           </article>

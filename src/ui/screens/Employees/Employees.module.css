@@ -306,6 +306,10 @@
   color: var(--color-cocoa);
 }
 
+.letGo {
+  color: var(--color-danger);
+}
+
 .candidates {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

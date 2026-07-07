@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  FIRE_TEAM_HAPPINESS_COST,
   HIRING_FEE,
   MAX_LOANS_PER_EMPLOYEE,
   OVERWORKED_SPEED_PENALTY,
@@ -12,6 +13,8 @@ import {
   assignedLoanCount,
   deriveWorkloads,
   effectiveness,
+  fireBlockedReason,
+  fireEmployee,
   hireEmployee,
   leastLoadedEmployeeId,
   promoteEmployee,
@@ -160,12 +163,49 @@ describe('Train / Promote / Hire (GDD §5)', () => {
   });
 });
 
-describe('effectiveness (GDD §5)', () => {
-  it('skill speeds work up; overwork halves it', () => {
+describe('effectiveness — never a static number (GDD §5 + playtest 2026-07-06 #2)', () => {
+  it('skill, happiness, level, and workload all move the pace', () => {
     const base = createStarterState().employees['emp-underwriter-1'];
     if (!base) throw new Error('missing employee');
-    expect(effectiveness({ ...base, skill: 3, workload: 50 })).toBe(1);
-    expect(effectiveness({ ...base, skill: 5, workload: 50 })).toBeCloseTo(1.3);
-    expect(effectiveness({ ...base, skill: 3, workload: 95 })).toBeCloseTo(0.5);
+    const speed = (over: Partial<typeof base>) => effectiveness({ ...base, ...over });
+
+    // skill speeds work up
+    expect(speed({ skill: 5, workload: 50 })).toBeGreaterThan(speed({ skill: 3, workload: 50 }));
+    // a happy teammate is genuinely faster than a miserable one
+    expect(speed({ happiness: 95, workload: 50 })).toBeGreaterThan(speed({ happiness: 20, workload: 50 }));
+    // seniority compounds: each level adds speed
+    expect(speed({ level: 3, workload: 50 })).toBeGreaterThan(speed({ level: 1, workload: 50 }));
+    // workload past 75% starts dragging, down to the floor at 100%
+    expect(speed({ workload: 76 })).toBeLessThan(speed({ workload: 75 }));
+    expect(speed({ workload: 90 })).toBeLessThan(speed({ workload: 80 }));
+    expect(speed({ workload: 100 })).toBeCloseTo(
+      speed({ workload: 50 }) * OVERWORKED_SPEED_PENALTY,
+      5,
+    );
+  });
+});
+
+describe('letting employees go (playtest 2026-07-06 #2)', () => {
+  it('removes them, saves payroll, and shakes the whole team', () => {
+    const s = createStarterState();
+    const moraleBefore = Object.values(s.employees)
+      .filter((e) => e.id !== 'emp-processor-1')
+      .map((e) => e.happiness);
+    const next = fireEmployee(
+      hireEmployee(s, { name: 'Avery Brooks', gender: 'f', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 6 }),
+      'emp-processor-1',
+    );
+    expect(next.employees['emp-processor-1']).toBeUndefined();
+    const survivors = Object.values(next.employees).filter((e) => e.name !== 'Avery Brooks');
+    // hiring bumped nobody; firing cost everyone FIRE_TEAM_HAPPINESS_COST
+    survivors.forEach((e, i) => {
+      expect(e.happiness).toBe(Math.max(0, (moraleBefore[i] ?? 0) - FIRE_TEAM_HAPPINESS_COST));
+    });
+  });
+
+  it('refuses to fire the only person who can own a stage', () => {
+    const s = createStarterState();
+    expect(fireBlockedReason(s, 'emp-underwriter-1')).not.toBeNull();
+    expect(fireEmployee(s, 'emp-underwriter-1')).toBe(s); // same reference: refused
   });
 });

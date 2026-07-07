@@ -37,7 +37,8 @@ export type TraitKey =
   | 'prompt'
   | 'impatient'
   | 'cautious'
-  | 'chatty';
+  | 'chatty'
+  | 'forgetful';
 
 export type Season = 'spring' | 'summer' | 'fall' | 'winter';
 
@@ -59,6 +60,8 @@ export interface Customer {
   about?: string;
   /** Which house illustration is theirs (house-N.png); repeats get fresh pairings. Falls back to portraitId. */
   houseId?: number;
+  /** How many times they've been re-asked for documents already requested — irritation escalates. */
+  nagCount?: number;
   dreamHome: {
     name: string;
     neighborhoodId: string;

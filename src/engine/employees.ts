@@ -5,11 +5,16 @@
  */
 import {
   EMPLOYEE_MAX_LEVEL,
+  FIRE_TEAM_HAPPINESS_COST,
   HAPPINESS_DECAY_HEAVY,
   HAPPINESS_DECAY_OVERWORKED,
   HAPPINESS_MAX,
   HAPPINESS_RECOVERY_LIGHT,
+  HAPPY_SPEED_MAX,
+  HAPPY_SPEED_MIN,
+  HIGH_WORKLOAD,
   HIRING_FEE,
+  LEVEL_SPEED_BONUS_PER_LEVEL,
   MAX_LOANS_PER_EMPLOYEE,
   NEEDS_BREAK_HAPPINESS,
   OVERWORKED_SPEED_PENALTY,
@@ -69,13 +74,24 @@ export function deriveWorkloads(state: GameState): void {
 }
 
 /**
- * Progress an employee contributes per worked hour: skill helps, being
- * overworked hurts badly (GDD §5 core tension).
+ * Progress an employee contributes per worked hour — deliberately never a
+ * static number (playtest 2026-07-06 #2): skill speeds work up, workload past
+ * HIGH_WORKLOAD drags it down toward the overworked floor, morale makes a
+ * happy teammate genuinely faster (and a miserable one slower), and each
+ * earned level adds seasoned-professional speed.
  */
 export function effectiveness(employee: Employee): number {
   const skillFactor = 1 + (employee.skill - 3) * SKILL_SPEED_STEP;
-  const overworkFactor = employee.workload >= OVERWORKED_THRESHOLD ? OVERWORKED_SPEED_PENALTY : 1;
-  return Math.max(0.2, skillFactor * overworkFactor);
+  const strain =
+    employee.workload <= HIGH_WORKLOAD
+      ? 1
+      : Math.max(
+          OVERWORKED_SPEED_PENALTY,
+          1 - ((employee.workload - HIGH_WORKLOAD) / (100 - HIGH_WORKLOAD)) * (1 - OVERWORKED_SPEED_PENALTY),
+        );
+  const morale = HAPPY_SPEED_MIN + (HAPPY_SPEED_MAX - HAPPY_SPEED_MIN) * (employee.happiness / 100);
+  const seniority = 1 + LEVEL_SPEED_BONUS_PER_LEVEL * (employee.level - 1);
+  return Math.max(0.2, skillFactor * strain * morale * seniority);
 }
 
 export function skillCap(employee: Employee, trainingTiers = 0): number {
@@ -88,7 +104,7 @@ export function updateEmployeeTags(state: GameState): void {
   for (const employee of Object.values(state.employees)) {
     if (employee.happiness < NEEDS_BREAK_HAPPINESS && employee.workload >= WORKLOAD_HEAVY) {
       employee.tag = 'needsBreak';
-    } else if (employee.workload >= OVERWORKED_THRESHOLD) {
+    } else if (employee.workload > HIGH_WORKLOAD) {
       employee.tag = 'overworked';
     } else if (employee.skill >= skillCap(employee, trainingTiers) && employee.level < EMPLOYEE_MAX_LEVEL) {
       employee.tag = 'readyToPromote';
@@ -238,6 +254,45 @@ export function hireEmployee(state: GameState, candidate: HireCandidate): GameSt
     `Your new ${ROLE_DISPLAY_NAME[candidate.role]} is settling in at their desk.`,
   );
   awardAchievement(s, 'teamBuilder'); // GDD §10
+  return s;
+}
+
+/** Why an employee can't be let go right now, or null if they can. */
+export function fireBlockedReason(state: GameState, employeeId: string): string | null {
+  const employee = state.employees[employeeId];
+  if (!employee) return 'Nobody by that name works here.';
+  const sameRole = Object.values(state.employees).filter((e) => e.role === employee.role);
+  if (sameRole.length <= 1) {
+    return `Someone must own the ${ROLE_DISPLAY_NAME[employee.role]} stages — hire a replacement first.`;
+  }
+  return null;
+}
+
+/**
+ * Let an employee go (playtest 2026-07-06 #2): payroll shrinks immediately,
+ * their loans move to teammates — and everyone who stays takes a morale hit.
+ * A slower, sadder office is the real price of the savings.
+ */
+export function fireEmployee(state: GameState, employeeId: string): GameState {
+  const employee = state.employees[employeeId];
+  if (!employee || fireBlockedReason(state, employeeId)) return state;
+
+  const s = structuredClone(state);
+  delete s.employees[employeeId];
+  for (const loan of Object.values(s.loans)) {
+    if (loan.assignedEmployeeId === employeeId) loan.assignedEmployeeId = null; // workLoan reassigns
+  }
+  for (const teammate of Object.values(s.employees)) {
+    teammate.happiness = Math.max(0, teammate.happiness - FIRE_TEAM_HAPPINESS_COST);
+  }
+  deriveWorkloads(s);
+  updateEmployeeTags(s);
+  pushEvent(
+    s,
+    'alerts',
+    `${employee.name} was let go`,
+    `Payroll drops $${employee.salaryMonthly.toLocaleString('en-US')}/mo, but the office feels it — everyone's happiness fell ${FIRE_TEAM_HAPPINESS_COST} points.`,
+  );
   return s;
 }
 

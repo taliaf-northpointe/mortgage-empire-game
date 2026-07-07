@@ -16,9 +16,13 @@ import {
   HAPPY_CUSTOMER_MIN,
   OFFICE_MORALE_BONUS_PER_2_TIERS,
   PROCESSING_APPRAISAL_HOURS,
+  FORGETFUL_DOC_CHANCE,
   RAINMAKER_REVENUE,
   REDO_CHALLENGE_LEVEL,
   REDO_HAPPINESS_COST,
+  TRUST_DOC_HOURS_OFF_PER_2_TRUST,
+  UNHAPPY_DOC_MISTAKE_CHANCE,
+  UNHAPPY_DOC_MISTAKE_HAPPINESS,
   REPUTATION_PER_COMPLETION,
   REQUESTED_DOC_HOURS,
   REQUESTED_DOC_HOURS_PROMPT,
@@ -237,17 +241,39 @@ export function maybeUnderwritingRedo(state: GameState, loan: Loan): boolean {
 
 /**
  * How many hours between document deliveries (GDD §4, M5): requested
- * documents come faster, and prompt/enthusiastic customers respond faster.
- * Exported for the loan-detail ETA display (engine/insights.ts).
+ * documents come faster, prompt/enthusiastic customers respond faster, and
+ * trust shortens the wait further (playtest 2026-07-06 #2) — customers who
+ * believe in you don't sit on paperwork. Exported for the loan-detail ETA
+ * display (engine/insights.ts).
  */
 export function docDeliveryCadence(customer: Customer | undefined, hasRequested: boolean): number {
   const traits = customer?.traits ?? [];
-  if (hasRequested) {
-    return traits.includes('prompt') ? REQUESTED_DOC_HOURS_PROMPT : REQUESTED_DOC_HOURS;
-  }
-  return traits.includes('prompt') || traits.includes('enthusiastic')
-    ? UNPROMPTED_DOC_HOURS_EAGER
-    : UNPROMPTED_DOC_HOURS;
+  const base = hasRequested
+    ? traits.includes('prompt')
+      ? REQUESTED_DOC_HOURS_PROMPT
+      : REQUESTED_DOC_HOURS
+    : traits.includes('prompt') || traits.includes('enthusiastic')
+      ? UNPROMPTED_DOC_HOURS_EAGER
+      : UNPROMPTED_DOC_HOURS;
+  const trustBoost = Math.floor((customer?.trust ?? 0) / 2) * TRUST_DOC_HOURS_OFF_PER_2_TRUST;
+  return Math.max(1, base - trustBoost);
+}
+
+/**
+ * Whether this document arrives botched (playtest 2026-07-06 #2): forgetful
+ * customers slip up sometimes, and anyone miserable enough sends the wrong
+ * papers. Deterministic per (seed, loan, day, hour).
+ */
+function docArrivesBotched(state: GameState, loan: Loan, customer: Customer | undefined): boolean {
+  if (!customer) return false;
+  const chance =
+    (customer.traits.includes('forgetful') ? FORGETFUL_DOC_CHANCE : 0) +
+    (customer.happiness < UNHAPPY_DOC_MISTAKE_HAPPINESS ? UNHAPPY_DOC_MISTAKE_CHANCE : 0);
+  if (chance <= 0) return false;
+  const rng = mulberry32(
+    (state.rngSeed ^ hashString(loan.id) ^ (state.clock.day * 2_246_822_519 + state.clock.hour * 401)) >>> 0,
+  );
+  return rng.next() < chance;
 }
 
 /** Advance one loan by one working hour. Mutates the (already cloned) state. */
@@ -279,6 +305,17 @@ function workLoan(
       const nextDoc = requested[0] ?? missing[0];
       const cadence = docDeliveryCadence(customer, requested.length > 0);
       if (nextDoc && loan.progressHours % cadence === 0) {
+        // Playtest 2026-07-06 #2: forgetful or miserable customers sometimes
+        // send the wrong papers — the wait starts over for that document.
+        if (docArrivesBotched(state, loan, customer)) {
+          pushEvent(
+            state,
+            'customers',
+            `${customer ? customer.name : 'A customer'} sent the wrong papers 😅`,
+            `The ${DOC_DISPLAY_NAME[nextDoc]} came in incomplete — they're redoing it. A friendly check-in wouldn't hurt.`,
+          );
+          return;
+        }
         loan.documents[nextDoc] = 'collected';
         loan.statusTag = missingDocsTag(loan);
         const remaining = missing.length - 1;

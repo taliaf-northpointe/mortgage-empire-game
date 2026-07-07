@@ -142,11 +142,29 @@ export const STAGE_ADVANCE_HAPPINESS_BOOST = 3;
 /** GDD §4 action 4 — happiness decays while a loan sits delayed (applied at day end) */
 export const DELAYED_HAPPINESS_DECAY_PER_DAY = 3;
 
+/*
+ * Living customers (playtest 2026-07-06 #2): trust speeds up documents,
+ * unhappiness (or a forgetful streak) causes botched ones, reputation earns
+ * trust, and repeated nagging escalates.
+ */
+/** Trusting customers respond faster: hours shaved off the document cadence per 2 trust. */
+export const TRUST_DOC_HOURS_OFF_PER_2_TRUST = 1;
+/** Forgetful customers sometimes send the wrong papers. */
+export const FORGETFUL_DOC_CHANCE = 0.25;
+/** Below this happiness, anyone can botch a document. */
+export const UNHAPPY_DOC_MISTAKE_HAPPINESS = 40;
+export const UNHAPPY_DOC_MISTAKE_CHANCE = 0.2;
+/** Contact's trust gain scales with reputation: + rep/100 × this. */
+export const REPUTATION_TRUST_FACTOR = 0.15;
+/** New leads from a famous office arrive already trusting (+1 at this reputation). */
+export const REPUTATION_TRUST_THRESHOLD = 70;
+
 /** GDD §4 — customer trait display names */
 export const TRAIT_LABEL: Record<TraitKey, string> = {
   enthusiastic: 'Enthusiastic',
   detailOriented: 'Detail-oriented',
   prompt: 'Prompt',
+  forgetful: 'Forgetful',
   impatient: 'Impatient',
   cautious: 'Cautious',
   chatty: 'Chatty',
@@ -211,11 +229,25 @@ export const MAX_LOANS_PER_EMPLOYEE = 4;
 
 /** GDD §5 (M6) — employee effectiveness: progress per worked hour */
 export const SKILL_SPEED_STEP = 0.15; // each skill point above/below 3 = ±15% speed
-export const OVERWORKED_THRESHOLD = 90; // workload % at which effectiveness drops
-export const OVERWORKED_SPEED_PENALTY = 0.5; // overworked employees work at half speed
+export const OVERWORKED_THRESHOLD = 90; // workload % where the harshest morale decay kicks in
+export const OVERWORKED_SPEED_PENALTY = 0.5; // the speed floor at 100% workload
+
+/*
+ * Living team (playtest 2026-07-06 #2): no stage takes a static amount of
+ * time — an employee's pace = skill × workload strain × morale × seniority.
+ */
+/** Above this workload %, speed degrades linearly down to OVERWORKED_SPEED_PENALTY at 100. */
+export const HIGH_WORKLOAD = 75;
+/** Morale speed factor spans this range across happiness 0 → 100. */
+export const HAPPY_SPEED_MIN = 0.7;
+export const HAPPY_SPEED_MAX = 1.15;
+/** Each employee level above 1 adds this much speed (experience compounds). */
+export const LEVEL_SPEED_BONUS_PER_LEVEL = 0.05;
+/** Letting someone go shakes everyone who stays. */
+export const FIRE_TEAM_HAPPINESS_COST = 8;
 
 /** GDD §5 (M6) — daily morale: heavy workload wears people down, light lets them recover */
-export const WORKLOAD_HEAVY = 70;
+export const WORKLOAD_HEAVY = 75; // matches HIGH_WORKLOAD — past here, days grind people down
 export const WORKLOAD_LIGHT = 50;
 export const HAPPINESS_DECAY_OVERWORKED = 4; // per day at ≥ OVERWORKED_THRESHOLD
 export const HAPPINESS_DECAY_HEAVY = 2; // per day at ≥ WORKLOAD_HEAVY

@@ -40,8 +40,10 @@ describe('advanceHour', () => {
     expect(s.clock.hour).toBe(DAY_START_HOUR + 2);
   });
 
-  it('collects unprompted documents on the trait cadence (Sarah: every 2 hours)', () => {
+  it('collects unprompted documents on the trait cadence (Sarah at trust 1: every 2 hours)', () => {
     let s = createStarterState();
+    const sarah = s.customers['cust-sarah-chen'];
+    if (sarah) sarah.trust = 1; // pin trust so the pure trait cadence shows
     while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
     const before = Object.values(loanOf(s).documents).filter((d) => d === 'collected').length;
     s = advanceHour(s);

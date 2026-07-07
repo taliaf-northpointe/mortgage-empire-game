@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import { DAY_END_HOUR, QUIZ_XP, XP_PER_TERM_LEARNED } from '../engine/constants';
 import { createStarterState } from '../engine/content/starter';
 import {
+  fireEmployee,
   hireEmployee,
   promoteEmployee,
   rebalanceLoans,
@@ -63,6 +64,8 @@ interface GameStore {
   trainEmployee(employeeId: string): void;
   promoteEmployee(employeeId: string): void;
   hireEmployee(candidate: HireCandidate): void;
+  /** Let an employee go — saves payroll, shakes the team's morale. */
+  fireEmployee(employeeId: string): void;
   rebalanceLoans(): void;
   /** GDD §7/§11 (M7) */
   purchaseUpgrade(upgradeId: string): void;
@@ -267,6 +270,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!game) return;
     const next = trainEmployee(game, employeeId);
     if (next !== game) set({ game: next });
+  },
+
+  fireEmployee(employeeId) {
+    const { game } = get();
+    if (!game) return;
+    const name = game.employees[employeeId]?.name;
+    const next = fireEmployee(game, employeeId);
+    if (next !== game) {
+      set({ game: next });
+      pushToast(`👋 ${name ?? 'They'} packed their desk. Payroll is lighter — and so is the mood.`);
+    }
   },
 
   promoteEmployee(employeeId) {
