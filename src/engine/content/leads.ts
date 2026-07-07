@@ -232,6 +232,27 @@ export function maybeSpawnLead(state: GameState): void {
   const warmOpening = Object.keys(state.loans).length < WARM_OPENING_LOANS;
   if (rng.next() >= chance && !warmOpening) return;
 
+  spawnLead(state, rng);
+}
+
+/**
+ * A thank-you note came back around (playtest 2026-07-07): the borrower told a
+ * friend, and the friend walked in. Guaranteed — a referral skips the daily
+ * luck AND the loan cap; going above and beyond earns the extra file.
+ * Returns the new lead's name.
+ */
+export function spawnReferralLead(state: GameState, referrerName: string): string | null {
+  const rng = mulberry32(
+    (state.rngSeed ^ (state.clock.day * 40_503 + Object.keys(state.customers).length * 9_973 + 77)) >>> 0,
+  );
+  return spawnLead(state, rng, referrerName);
+}
+
+/**
+ * Create one new customer + lead loan (shared by the daily spawn and
+ * referrals). Mutates the (already cloned) state; returns the lead's name.
+ */
+function spawnLead(state: GameState, rng: Rng, referrerName?: string): string | null {
   // Everyone gets their moment: a portrait never repeats until the whole
   // cast has walked in, then the least-seen faces return first — as a brand
   // new person (fresh name, fresh story, different house).
@@ -244,7 +265,7 @@ export function maybeSpawnLead(state: GameState): void {
   const minUsage = Math.min(...usageByPortrait.values());
   const freshest = ARCHETYPES.filter((a) => usageByPortrait.get(a.portraitId) === minUsage);
   const archetype = freshest[rng.int(0, freshest.length - 1)];
-  if (!archetype) return;
+  if (!archetype) return null;
 
   // Serials only ever climb — walkaways can remove loans, and a recycled id
   // would collide with history (memoryWall keeps closed loans' ids too).
@@ -329,11 +350,12 @@ export function maybeSpawnLead(state: GameState): void {
     delayed: false,
   };
 
-  pushLeadEvent(state, name, archetype.product);
+  pushLeadEvent(state, name, archetype.product, referrerName);
   awardAchievement(state, 'scout'); // GDD §10 — first fresh lead
+  return name;
 }
 
-function pushLeadEvent(state: GameState, name: string, product: LoanProduct): void {
+function pushLeadEvent(state: GameState, name: string, product: LoanProduct, referrerName?: string): void {
   const { day, hour } = state.clock;
   const n = state.eventLog.length;
   const event: GameEvent = {
@@ -341,8 +363,10 @@ function pushLeadEvent(state: GameState, name: string, product: LoanProduct): vo
     day,
     hour,
     category: 'customers',
-    title: `New lead: ${name}!`,
-    detail: `They're dreaming of a home and asking about a ${LOAN_PRODUCT_LABEL[product]} loan. Say hello!`,
+    title: referrerName ? `Referral: ${name}!` : `New lead: ${name}!`,
+    detail: referrerName
+      ? `${referrerName} told them all about you — they walked in asking for you by name. A ${LOAN_PRODUCT_LABEL[product]} loan, ready when you are.`
+      : `They're dreaming of a home and asking about a ${LOAN_PRODUCT_LABEL[product]} loan. Say hello!`,
   };
   state.eventLog.push(event);
 }

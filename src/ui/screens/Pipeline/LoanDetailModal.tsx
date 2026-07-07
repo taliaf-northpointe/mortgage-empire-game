@@ -134,7 +134,7 @@ export function LoanDetailModal({
                       : 'Awaiting sign-off'
                     : DOC_STATUS_LABEL[status]}
                 </span>
-                {status === 'missing' && (
+                {status === 'missing' && loan.stage === 'documentCollection' && (
                   <Button onClick={() => requestDocument(loan.id, key)}>Request</Button>
                 )}
                 {underwriting && status === 'collected' && !loan.docApprovals?.[key] && (

@@ -4,6 +4,7 @@
  * Pure: (GameState in) → (GameState out). No React, no magic numbers.
  */
 import {
+  ASSISTANT_THANK_YOUS_PER_MORNING,
   CLOSING_FEE_RATE,
   CX_HAPPINESS_BONUS_PER_2_TIERS,
   DAY_END_HOUR,
@@ -45,7 +46,7 @@ import {
   XP_PER_COMPLETED_LOAN,
 } from './constants';
 import { maybeSpawnDisruption, tickDisruption } from './content/disruptions';
-import { maybeSpawnLead } from './content/leads';
+import { maybeSpawnLead, spawnReferralLead } from './content/leads';
 import { buildMemoryEntry } from './content/memoryWall';
 import {
   awardAchievement,
@@ -59,6 +60,7 @@ import {
   applyDailyMorale,
   deriveWorkloads,
   effectiveness,
+  hasRole,
   leastLoadedEmployeeId,
   updateEmployeeTags,
 } from './employees';
@@ -546,6 +548,28 @@ export function advanceDay(state: GameState): GameState {
 
   // GDD §2 — more customers arrive (seeded, capped; GDD §13 decision 8).
   maybeSpawnLead(s);
+
+  // Playtest 2026-07-07 — a Loan Officer Assistant mails thank-you notes to
+  // the Wall of Homes each morning; every note is a referral waiting to happen.
+  if (hasRole(s, 'loanOfficerAssistant')) {
+    const assistant = Object.values(s.employees).find((e) => e.role === 'loanOfficerAssistant');
+    let sent = 0;
+    for (const entry of s.memoryWall) {
+      if (sent >= ASSISTANT_THANK_YOUS_PER_MORNING) break;
+      if (entry.thanked) continue;
+      entry.thanked = true;
+      sent += 1;
+      const referral = spawnReferralLead(s, entry.customerName);
+      pushEvent(
+        s,
+        'customers',
+        `💌 ${assistant ? assistant.name : 'Your assistant'} sent ${entry.customerName} a thank-you note`,
+        referral
+          ? `${entry.customerName} loved it — and told ${referral} to come see you.`
+          : `${entry.customerName} loved it. Word travels fast in Meadowbrook.`,
+      );
+    }
+  }
 
   // GDD §6 — and some mornings, the office has other plans.
   maybeSpawnDisruption(s);

@@ -29,19 +29,22 @@ function inDocumentCollection(state: GameState): GameState {
 
 describe('requestDocument', () => {
   it('marks a missing document as requested and logs an event', () => {
-    const s = requestDocument(createStarterState(), STARTER_LOAN_ID, 'taxReturns');
+    const s = requestDocument(inDocumentCollection(createStarterState()), STARTER_LOAN_ID, 'taxReturns');
     expect(loanOf(s).documents.taxReturns).toBe('requested');
     expect(s.eventLog.some((e) => e.category === 'customers')).toBe(true);
   });
 
   it('returns the same state when the document is not requestable', () => {
     const base = createStarterState();
-    const collected = structuredClone(base);
+    const collected = inDocumentCollection(structuredClone(base));
     const loan = collected.loans[STARTER_LOAN_ID];
     if (!loan) throw new Error('missing loan');
     loan.documents.taxReturns = 'collected';
     expect(requestDocument(collected, STARTER_LOAN_ID, 'taxReturns')).toBe(collected);
     expect(requestDocument(base, 'LN-nope', 'taxReturns')).toBe(base);
+    // No chasing papers before Document Collection (playtest 2026-07-07):
+    // the starter loan is still a lead, so the request is refused.
+    expect(requestDocument(base, STARTER_LOAN_ID, 'taxReturns')).toBe(base);
   });
 
   it('a requested document arrives while unrequested ones sit (M9 solo)', () => {
@@ -73,15 +76,26 @@ describe('contactCustomer', () => {
 });
 
 describe('moveLoanForward', () => {
-  it('advances a stage once its waiting period is served (M9)', () => {
+  it('clicks through the early conversations instantly (playtest 2026-07-07)', () => {
+    let s = createStarterState(); // fresh lead, zero hours worked
+    s = moveLoanForward(s, STARTER_LOAN_ID);
+    expect(loanOf(s).stage).toBe('preQualification');
+    s = moveLoanForward(s, STARTER_LOAN_ID);
+    expect(loanOf(s).stage).toBe('application');
+    s = moveLoanForward(s, STARTER_LOAN_ID);
+    expect(loanOf(s).stage).toBe('documentCollection'); // instant, all the way to paperwork
+  });
+
+  it('waiting periods still bind from Processing onward (M9)', () => {
     const base = createStarterState();
+    const loan = base.loans[STARTER_LOAN_ID];
+    if (!loan) throw new Error('missing loan');
+    loan.stage = 'processing';
+    loan.progressHours = 0;
     expect(moveLoanForward(base, STARTER_LOAN_ID)).toBe(base); // hours still owed
 
-    const ready = createStarterState();
-    const loan = ready.loans[STARTER_LOAN_ID];
-    if (!loan) throw new Error('missing loan');
-    loan.progressHours = STAGE_HOURS_REQUIRED.lead;
-    expect(loanOf(moveLoanForward(ready, STARTER_LOAN_ID)).stage).toBe('preQualification');
+    loan.progressHours = STAGE_HOURS_REQUIRED.processing;
+    expect(loanOf(moveLoanForward(base, STARTER_LOAN_ID)).stage).toBe('underwriting');
   });
 
   it('is blocked in Document Collection until every document is in', () => {

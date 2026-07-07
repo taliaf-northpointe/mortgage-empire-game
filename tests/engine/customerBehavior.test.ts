@@ -122,14 +122,28 @@ describe('trait-driven document cadence (GDD §4, M5 — auto-requested since M9
 });
 
 describe('Request Documents (GDD §4 action 1)', () => {
+  // Requests only open in Document Collection (playtest 2026-07-07).
+  const readyToRequest = () => {
+    const s = staffedStarter();
+    const loan = s.loans[STARTER_LOAN_ID];
+    if (!loan) throw new Error('missing loan');
+    loan.stage = 'documentCollection';
+    return s;
+  };
+
   it('requests every missing document at once', () => {
-    const s = requestAllDocuments(staffedStarter(), STARTER_LOAN_ID);
+    const s = requestAllDocuments(readyToRequest(), STARTER_LOAN_ID);
     const statuses = Object.values(loanOf(s).documents).filter((d) => d !== 'notRequired');
     expect(statuses.every((d) => d === 'requested')).toBe(true);
   });
 
+  it('is refused before Document Collection begins', () => {
+    const early = staffedStarter(); // the starter loan is still a lead
+    expect(requestAllDocuments(early, STARTER_LOAN_ID)).toBe(early);
+  });
+
   it('asking again irritates more and more each time (escalating nags)', () => {
-    let s = requestAllDocuments(staffedStarter(), STARTER_LOAN_ID);
+    let s = requestAllDocuments(readyToRequest(), STARTER_LOAN_ID);
     const before = customerOf(s).happiness;
     s = requestAllDocuments(s, STARTER_LOAN_ID); // 1st nag: −base
     expect(customerOf(s).happiness).toBe(before - REQUEST_NAG_HAPPINESS_COST);

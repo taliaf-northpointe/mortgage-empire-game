@@ -19,6 +19,12 @@
   padding-bottom: 32px;
 }
 
+/* Give spotlighted anchors headroom when scrolled to the viewport top, so the
+   glowing ring (8px padding + 3px border) never gets clipped. */
+:global([data-tutorial]) {
+  scroll-margin-top: 16px;
+}
+
 .spotlight {
   position: fixed;
   border: 3px solid var(--color-honey);
@@ -68,11 +74,6 @@
   overflow-y: auto;
 }
 
-@media (max-width: 600px) {
-  .card {
-    padding: 20px 18px;
-  }
-}
 
 .mascotRow {
   display: flex;
@@ -174,4 +175,38 @@
 
 .dotActive {
   background: var(--color-terracotta);
+}
+
+/* Phones: tighter chrome, and in spotlight mode the card hugs the bottom at a
+   capped height so the highlighted element stays visible above it. The 14 nav
+   dots don't fit a phone-width card — the progress bar and step chip carry
+   that information instead. (This block stays LAST so it wins source order.) */
+@media (max-width: 600px) {
+  .overlay,
+  .overlaySpotlit {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 18px 16px;
+  }
+
+  .overlaySpotlit .card {
+    max-height: 58vh;
+  }
+
+  .dots {
+    display: none;
+  }
+
+  .nav {
+    justify-content: space-between;
+  }
+
+  /* Previous/Next share the row edge-to-edge instead of overflowing it. */
+  .nav button {
+    flex: 1;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }

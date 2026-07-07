@@ -39,21 +39,26 @@ describe('M9 — solo founder start', () => {
   });
 
   it('unstaffed stages accrue at the founder pace and NEVER auto-advance', () => {
-    let s = createStarterState();
-    expect(loanOf(s).stage).toBe('lead');
+    // Processing is real work — the early conversations are instant clicks
+    // (playtest 2026-07-07), but from here the waiting periods bind.
+    const base = createStarterState();
+    const loan = base.loans[STARTER_LOAN_ID];
+    if (!loan) throw new Error('starter loan missing');
+    loan.stage = 'processing';
+    let s = base;
 
     s = advanceHour(s);
     expect(loanOf(s).progressHours).toBeCloseTo(PLAYER_SOLO_SPEED, 5);
     expect(moveBlockedReason(s, STARTER_LOAN_ID)).toContain('Still in the works');
 
     // grind out the full waiting period — the loan is ready but WAITS for you
-    while (loanOf(s).progressHours < STAGE_HOURS_REQUIRED.lead) s = advanceHour(s);
+    while (loanOf(s).progressHours < STAGE_HOURS_REQUIRED.processing) s = advanceHour(s);
     s = advanceHour(s);
-    expect(loanOf(s).stage).toBe('lead'); // no click, no move
+    expect(loanOf(s).stage).toBe('processing'); // no click, no move
     expect(moveBlockedReason(s, STARTER_LOAN_ID)).toBeNull();
 
     s = moveLoanForward(s, STARTER_LOAN_ID);
-    expect(loanOf(s).stage).toBe('preQualification');
+    expect(loanOf(s).stage).toBe('underwriting');
   });
 
   it('solo document collection sits still until YOU request the paperwork', () => {

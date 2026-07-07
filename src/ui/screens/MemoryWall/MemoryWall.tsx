@@ -1,4 +1,4 @@
-import { ArrowLeft, Heart } from 'lucide-react';
+import { ArrowLeft, Heart, Mail, MailCheck } from 'lucide-react';
 import {
   LOAN_PRODUCT_LABEL,
   LOAN_PURPOSE_LABEL,
@@ -58,6 +58,7 @@ export function MemoryWall({ onBack }: { onBack(): void }) {
 }
 
 function MemoryCard({ page, tilt }: { page: MemoryEntry; tilt: number }) {
+  const sendThankYouNote = useGameStore((s) => s.sendThankYouNote);
   const when =
     page.closingDay !== null
       ? `Day ${page.closingDay}${page.season ? ` · ${page.season}` : ''}`
@@ -89,6 +90,20 @@ function MemoryCard({ page, tilt }: { page: MemoryEntry; tilt: number }) {
         <span className={styles.chipQuiet}>{when}</span>
       </div>
       <p className={styles.note}>“{page.note}”</p>
+      {page.thanked ? (
+        <span className={styles.thankedChip}>
+          <MailCheck size={13} aria-hidden="true" /> Thank-you note sent
+        </span>
+      ) : (
+        <button
+          type="button"
+          className={styles.thankButton}
+          onClick={() => sendThankYouNote(page.loanId)}
+          title="One per family — going above and beyond gets talked about (hello, referrals). A Loan Officer Assistant sends these for you."
+        >
+          <Mail size={13} aria-hidden="true" /> Send a thank-you note
+        </button>
+      )}
     </article>
   );
 }

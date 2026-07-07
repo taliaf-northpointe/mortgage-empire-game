@@ -25,7 +25,15 @@ function Face({ spriteId, size = 38 }: { spriteId: number; size?: number }) {
   );
 }
 
-const ROLES: Role[] = ['loanOfficer', 'processor', 'underwriter', 'closer', 'it', 'compliance'];
+const ROLES: Role[] = [
+  'loanOfficer',
+  'loanOfficerAssistant',
+  'processor',
+  'underwriter',
+  'closer',
+  'it',
+  'compliance',
+];
 type Tab = 'all' | Role;
 
 const TAG_LABEL: Record<NonNullable<Employee['tag']>, string> = {

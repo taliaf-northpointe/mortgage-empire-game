@@ -18,7 +18,14 @@ export type LoanStage =
 export type LoanProduct = 'conventional' | 'fha' | 'va';
 export type LoanPurpose = 'purchase' | 'refinance';
 
-export type Role = 'loanOfficer' | 'processor' | 'underwriter' | 'closer' | 'it' | 'compliance';
+export type Role =
+  | 'loanOfficer'
+  | 'loanOfficerAssistant'
+  | 'processor'
+  | 'underwriter'
+  | 'closer'
+  | 'it'
+  | 'compliance';
 
 export type DocumentKey =
   | 'employmentVerification'
@@ -127,6 +134,8 @@ export interface MemoryEntry {
   /** Their house illustration; older entries fall back to portraitId. */
   houseId?: number | null;
   note: string; // their thank-you note
+  /** A thank-you note went back to them (you or your Loan Officer Assistant) — once per borrower. */
+  thanked?: boolean;
 }
 
 export interface GameEvent {

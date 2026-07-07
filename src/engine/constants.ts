@@ -79,6 +79,7 @@ export const ROLE_BY_STAGE: Record<LoanStage, Role> = {
 /** GDD §5 v2 — role display names */
 export const ROLE_DISPLAY_NAME: Record<Role, string> = {
   loanOfficer: 'Loan Officer',
+  loanOfficerAssistant: 'Loan Officer Assistant',
   processor: 'Processor',
   underwriter: 'Underwriter',
   closer: 'Closer',
@@ -94,7 +95,13 @@ export const ROLE_DISPLAY_NAME: Record<Role, string> = {
 /** The founder's own pace on unstaffed stages — you can do everything, slowly. */
 export const PLAYER_SOLO_SPEED = 0.5;
 /** Support roles unlock with your career (they own no pipeline stage). */
-export const ROLE_UNLOCK_LEVEL: Partial<Record<Role, number>> = { it: 5, compliance: 15 };
+export const ROLE_UNLOCK_LEVEL: Partial<Record<Role, number>> = {
+  it: 5,
+  loanOfficerAssistant: 8,
+  compliance: 15,
+};
+/** A Loan Officer Assistant mails this many thank-you notes each morning. */
+export const ASSISTANT_THANK_YOUS_PER_MORNING = 1;
 /** With in-house IT, mishaps are rarer and end sooner (and morale suffers less). */
 export const IT_DISRUPTION_CHANCE_FACTOR = 0.5;
 export const IT_DISRUPTION_HOURS_OFF = 1;
@@ -102,6 +109,19 @@ export const IT_DISRUPTION_HOURS_OFF = 1;
 export const AUDIT_LEVEL = 20;
 export const AUDIT_REPUTATION_PENALTY = 10;
 export const AUDIT_PASS_REPUTATION_BONUS = 3;
+
+/**
+ * Playtest 2026-07-07 — the early stages are conversations, not paperwork:
+ * clicking Continue moves a lead through them INSTANTLY (Document Collection
+ * still needs every paper in hand first). The waiting periods below only bind
+ * manual moves from Processing onward; automation always works by the hour.
+ */
+export const MANUAL_MOVE_INSTANT_STAGES: LoanStage[] = [
+  'lead',
+  'preQualification',
+  'application',
+  'documentCollection',
+];
 
 /**
  * TDD §4c — work-hours a loan must accumulate to clear each stage (base values;
@@ -288,6 +308,7 @@ export const HIRING_FEE = 1_000;
 /** GDD §5 — mockup salary ranges per role (used for hire candidates) */
 export const SALARY_RANGE_BY_ROLE: Record<Role, { min: number; max: number }> = {
   loanOfficer: { min: 4_400, max: 5_800 },
+  loanOfficerAssistant: { min: 3_200, max: 3_800 },
   processor: { min: 3_600, max: 4_100 },
   underwriter: { min: 4_700, max: 5_400 },
   closer: { min: 4_200, max: 5_100 },

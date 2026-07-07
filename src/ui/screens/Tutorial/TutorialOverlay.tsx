@@ -46,9 +46,9 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'The journey, part 1: getting started 🚶',
-    body: 'Every loan walks the authentic mortgage road. Lead: a curious neighbor says hello. Pre-Qualification: a quick estimate of what they can afford. Application: the official paperwork, answered by a Loan Estimate. Each stage has a real working time — and until you hire a Loan Officer, YOU push these stages along: open the loan and press Continue when its time is served.',
+    body: 'Every loan walks the authentic mortgage road. Lead: a curious neighbor says hello. Pre-Qualification: a quick estimate of what they can afford. Application: the official paperwork, answered by a Loan Estimate. These first steps are conversations — when YOU work them, a click of Continue moves the loan along instantly, all the way to Document Collection. A hired Loan Officer walks the same road automatically, on the office clock.',
     tips: [
-      'A Loan Officer automates these early stages entirely (you can still click ahead of them).',
+      'Solo tip: open a new lead and click Continue three times — that neighbor is ready for paperwork.',
       'Bold terms with a little ⓘ open friendly explanations — tap any of them.',
     ],
     highlight: 'nav-pipeline',
@@ -63,7 +63,7 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'Documents make the world go round 📄',
-    body: "Customers owe genuine paperwork: Employment Verification, Bank Statements, Government-Issued ID, and more. Solo, nothing arrives until YOU press Request Documents — a Processor requests everything automatically the moment a loan reaches Document Collection. Trusting customers respond faster; happy customers send correct papers; a stressed or forgetful one occasionally sends the wrong thing and has to redo it.",
+    body: "Customers owe genuine paperwork: Employment Verification, Bank Statements, Government-Issued ID, and more. Requests only open once a loan reaches Document Collection — then, solo, nothing arrives until YOU press Request Documents; a Processor requests everything automatically the moment the stage begins. Trusting customers respond faster; happy customers send correct papers; a stressed or forgetful one occasionally sends the wrong thing and has to redo it.",
     tips: [
       'Re-requesting papers they already promised irritates them more each time — the cost escalates.',
       'A botched document is a hint: check in with them before asking again.',
@@ -71,7 +71,7 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'Your four moves 🎯',
-    body: "On any loan you command four actions. Request Documents: start (or hurry) the paperwork. Continue Processing: advance the loan once its stage requirements AND its working time are met. Contact: a friendly check-in worth +2 happiness and growing trust — the stronger your reputation, the more your word counts — at the cost of one hour's work on the file. Delay: shelve a loan and Resume it later.",
+    body: "On any loan you command four actions. Request Documents: start (or hurry) the paperwork, once Document Collection begins. Continue Processing: advance the loan — instant through the early conversations, then gated by real requirements and working time from Processing onward. Contact: a friendly check-in worth +2 happiness and growing trust — the stronger your reputation, the more your word counts — at the cost of one hour's work on the file. Delay: shelve a loan and Resume it later.",
     tips: [
       'Contact is the remedy after a nag, a delay, or a botched document — it mends feelings.',
       'A popup confirms precisely what each action accomplished.',
@@ -106,8 +106,11 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'The Wall of Homes ❤️',
-    body: 'Every family you help earns a page in the scrapbook: their photo in front of their new home, the loan that made it possible, the closing date, and the thank-you note they left. Money is the score, but the Wall is the point — a growing record of the neighbors whose lives you changed.',
-    tips: ['Visit it from the highlighted heart in the sidebar any time you need a reason to smile.'],
+    body: 'Every family you help earns a page in the scrapbook: their photo in front of their new home, the loan that made it possible, the closing date, and the thank-you note they left. Send one back! Each family can receive one thank-you note from you — and going above and beyond gets talked about: every note brings a brand-new referral lead through your door.',
+    tips: [
+      'Visit it from the highlighted heart in the sidebar any time you need a reason to smile.',
+      'At level 8 you can hire a Loan Officer Assistant who mails a thank-you note every morning — referrals on autopilot.',
+    ],
     highlight: 'nav-wall',
   },
   {
@@ -121,7 +124,7 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'Your first moves, step by step 🗺️',
-    body: "Here's exactly how to start strong, alone. 1: Set speed to 2×. 2: Open the Pipeline, click Sarah, and press Continue whenever her stage's time is served — you're the Loan Officer today. 3: In Document Collection, press Request Documents — you're the Processor too. 4: In Underwriting, Approve each document, then wait out the review. 5: Press Close the loan and collect your first fee. 6: Spend it on your first hire and watch that stage start running itself.",
+    body: "Here's exactly how to start strong, alone. 1: Set speed to 2×. 2: Open the Pipeline, click Sarah, and click Continue through her first steps — the early conversations are instant for you. 3: In Document Collection, press Request Documents and let the papers roll in — you're the Processor too. 4: Processing takes real working time; then in Underwriting, Approve each document and wait out the review. 5: Press Close the loan and collect your first fee. 6: Spend it on your first hire and watch that stage start running itself.",
     tips: [
       'Solo work moves at half a specialist\'s pace — every hire is a real acceleration.',
       'If a loan looks stuck, its card says exactly what (or who) it\'s waiting on.',
@@ -149,17 +152,27 @@ export function TutorialOverlay({ onClose }: TutorialOverlayProps) {
   const step = STEPS[stepIndex];
   const [spot, setSpot] = useState<DOMRect | null>(null);
 
-  // Measure the highlighted element for this step (and re-measure on resize).
+  // Measure the highlighted element for this step. On phones the dashboard
+  // scrolls, so the fixed spotlight must track scrolling too — and a target
+  // that is hidden or off-layout (zero size) gets no spotlight at all.
   useEffect(() => {
+    const target = step?.highlight
+      ? document.querySelector(`[data-tutorial="${step.highlight}"]`)
+      : null;
     const measure = () => {
-      const target = step?.highlight
-        ? document.querySelector(`[data-tutorial="${step.highlight}"]`)
-        : null;
-      setSpot(target ? target.getBoundingClientRect() : null);
+      const rect = target ? target.getBoundingClientRect() : null;
+      setSpot(rect && rect.width > 0 && rect.height > 0 ? rect : null);
     };
+    // 'start' parks the target at the TOP of the viewport — clear of the
+    // bottom-anchored card on phones (the desktop layout barely scrolls).
+    target?.scrollIntoView({ block: 'start', inline: 'nearest' });
     measure();
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    window.addEventListener('scroll', measure, true);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure, true);
+    };
   }, [step]);
 
   if (!step) return null;

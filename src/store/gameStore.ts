@@ -25,6 +25,7 @@ import {
   moveLoanForward,
   requestAllDocuments,
   requestDocument,
+  sendThankYouNote,
   toggleDelay,
 } from '../engine/playerActions';
 import { getEntry } from '../engine/content/glossary';
@@ -63,6 +64,8 @@ interface GameStore {
   learnTerm(key: string): void;
   /** Resolve the pending mortgage quiz with the player's pick. */
   answerQuiz(chosenTermKey: string): void;
+  /** Wall of Homes — thank a borrower (once each); word of mouth sends a referral. */
+  sendThankYouNote(loanId: string): void;
   /** GDD §5 employee actions (M6) */
   trainEmployee(employeeId: string): void;
   promoteEmployee(employeeId: string): void;
@@ -336,6 +339,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
         correct
           ? `🎓 Nailed it! +${QUIZ_XP} XP`
           : `📚 Not quite — "${term}" is waiting in the Learning Center for a refresher.`,
+      );
+    }
+  },
+
+  sendThankYouNote(loanId) {
+    const { game } = get();
+    if (!game) return;
+    const next = sendThankYouNote(game, loanId);
+    if (next !== game) {
+      set({ game: next });
+      const page = next.memoryWall.find((m) => m.loanId === loanId);
+      const referral = next.eventLog.some((e) => e.title.startsWith('Referral:'));
+      pushToast(
+        referral
+          ? `💌 ${page?.customerName ?? 'They'} loved your note — and sent a friend your way!`
+          : `💌 Thank-you note sent to ${page?.customerName ?? 'the family'}.`,
       );
     }
   },

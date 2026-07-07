@@ -11,6 +11,7 @@ import {
   CX_TRUST_BONUS_PER_TIER,
   DOC_DISPLAY_NAME,
   HAPPINESS_MAX,
+  MANUAL_MOVE_INSTANT_STAGES,
   QUIZ_XP,
   REPUTATION_TRUST_FACTOR,
   REQUEST_NAG_HAPPINESS_COST,
@@ -23,6 +24,7 @@ import {
 } from './constants';
 import { checkLevelUp } from './economy';
 import { getEntry } from './content/glossary';
+import { spawnReferralLead } from './content/leads';
 import { tiersOwned } from './upgrades';
 import { missingDocs, unapprovedDocs } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
@@ -37,7 +39,9 @@ function pushEvent(state: GameState, category: GameEvent['category'], title: str
 /** Ask the customer for one specific missing loan document (loan popover). */
 export function requestDocument(state: GameState, loanId: string, key: DocumentKey): GameState {
   const loan = state.loans[loanId];
-  if (!loan || loan.documents[key] !== 'missing') return state;
+  // Paperwork only starts once the loan reaches Document Collection
+  // (playtest 2026-07-07) — no chasing papers during the early conversations.
+  if (!loan || loan.stage !== 'documentCollection' || loan.documents[key] !== 'missing') return state;
 
   const s = structuredClone(state);
   const l = s.loans[loanId];
@@ -62,7 +66,7 @@ export function requestDocument(state: GameState, loanId: string, key: DocumentK
  */
 export function requestAllDocuments(state: GameState, loanId: string): GameState {
   const loan = state.loans[loanId];
-  if (!loan) return state;
+  if (!loan || loan.stage !== 'documentCollection') return state;
   const stillMissing = missingDocs(loan).filter((key) => loan.documents[key] === 'missing');
   const alreadyRequested = missingDocs(loan).some((key) => loan.documents[key] === 'requested');
   if (stillMissing.length === 0 && !alreadyRequested) return state;
@@ -155,6 +159,9 @@ export function moveBlockedReason(state: GameState, loanId: string): string | nu
     const pending = unapprovedDocs(loan).length;
     return `${pending} ${pending === 1 ? 'document needs' : 'documents need'} sign-off first.`;
   }
+  // The early stages are conversations — your click IS the work (playtest
+  // 2026-07-07). Waiting periods only bind from Processing onward.
+  if (MANUAL_MOVE_INSTANT_STAGES.includes(loan.stage)) return null;
   if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage]) {
     const left = Math.ceil(STAGE_HOURS_REQUIRED[loan.stage] - loan.progressHours);
     return `Still in the works — about ${left}h of ${STAGE_DISPLAY_NAME[loan.stage]} to go.`;
@@ -282,6 +289,32 @@ export function answerQuiz(state: GameState, chosenTermKey: string): GameState {
   } else {
     pushEvent(s, 'alerts', 'Quiz missed — no harm done', `${term} is waiting in the Learning Center for a refresher.`);
   }
+  return s;
+}
+
+/**
+ * Send a thank-you note to a family on the Wall of Homes (playtest 2026-07-07):
+ * going above and beyond gets talked about — a brand-new referral lead walks
+ * in. Once per borrower; a Loan Officer Assistant mails these automatically
+ * each morning once hired (level 8).
+ */
+export function sendThankYouNote(state: GameState, loanId: string): GameState {
+  const entry = state.memoryWall.find((m) => m.loanId === loanId);
+  if (!entry || entry.thanked) return state;
+
+  const s = structuredClone(state);
+  const page = s.memoryWall.find((m) => m.loanId === loanId);
+  if (!page) return state;
+  page.thanked = true;
+  const referral = spawnReferralLead(s, page.customerName);
+  pushEvent(
+    s,
+    'customers',
+    `💌 You sent ${page.customerName} a thank-you note`,
+    referral
+      ? `They loved it — and told ${referral} to come see you. Kindness pays.`
+      : 'They loved it. Word travels fast in Meadowbrook.',
+  );
   return s;
 }
 

@@ -48,7 +48,8 @@ export function CustomerProfile({ customerId, onSelectCustomer, onBack }: Custom
   const owed = loan ? missingDocs(loan).length : 0;
   // Enabled while anything is still owed — asking again is allowed, but it
   // nags the customer and costs a little happiness (GDD §4 action 1).
-  const requestable = owed > 0;
+  // Paperwork only starts once the loan reaches Document Collection.
+  const requestable = owed > 0 && loan?.stage === 'documentCollection';
   const next = loan ? nextStage(loan.stage) : null;
   const blocked = loan ? moveBlockedReason(game, loan.id) : 'No active loan.';
 

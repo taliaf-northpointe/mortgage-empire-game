@@ -219,3 +219,40 @@
   border-top: 1px dashed var(--color-sand);
   padding-top: 8px;
 }
+
+/* ── Thank-you notes (referrals!) ───────────────────── */
+
+.thankButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-honey) 35%, var(--color-paper));
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.thankButton:hover {
+  background: color-mix(in srgb, var(--color-honey) 55%, var(--color-paper));
+}
+
+.thankedChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-cocoa);
+  background: var(--color-sand);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+}
