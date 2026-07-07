@@ -2,8 +2,11 @@
  * Processes Talia's generated art (repo root) into game-ready sprites in
  * public/assets/art/:
  *
- *   Office 1.png        → office-room.png   (resized backdrop, bg kept)
- *   Desk.png            → desk.png          (bg + soft shadow stripped, trimmed)
+ *   Office N.png        → office-room-N.png (resized backdrops — the office
+ *                                            upgrade stages, bg kept)
+ *   Desk.png / Desk N.png → desk-N.png      (bg + soft shadow stripped,
+ *                                            trimmed; desk-1 comes from the
+ *                                            original Desk.png)
  *   Character N.png     → char-N.png        (bg stripped, baked-in desk rows
  *                                            cropped away, trimmed)
  *   Borrower N.png      → borrower-N.png    (bg stripped, trimmed — full-body
@@ -151,13 +154,17 @@ function cropFraction(png, fx0, fy0, fx1, fy1) {
 
 /* ── Process everything ────────────────────────────────────────────── */
 
-if (existsSync(join(ROOT, 'Office 1.png'))) {
-  save('office-room.png', resize(load('Office 1.png'), 1500));
+for (let n = 1; n <= 5; n++) {
+  const src = `Office ${n}.png`;
+  if (!existsSync(join(ROOT, src))) continue;
+  save(`office-room-${n}.png`, resize(load(src), 1500));
 }
 
-if (existsSync(join(ROOT, 'Desk.png'))) {
+for (let n = 1; n <= 5; n++) {
+  const src = n === 1 ? 'Desk.png' : `Desk ${n}.png`;
+  if (!existsSync(join(ROOT, src))) continue;
   // higher tolerance eats the soft drop shadow too
-  save('desk.png', resize(trim(stripBackground(load('Desk.png'), 46)), 460));
+  save(`desk-${n}.png`, resize(trim(stripBackground(load(src), 46)), 460));
 }
 
 // 1, 2, and 8 are retired from the office cast (Talia's call, 2026-07-06)

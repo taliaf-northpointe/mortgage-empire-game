@@ -18,6 +18,7 @@ import {
 import { audioManager } from '../../../audio/AudioManager';
 import { DAY_END_HOUR, REAL_MS_PER_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
 import { DISRUPTION_BY_KIND } from '../../../engine/content/disruptions';
+import { officeStage } from '../../../engine/upgrades';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
 import { GlossaryTerm } from '../../glossary/GlossaryTerm';
@@ -198,7 +199,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
       </header>
 
       <main className={styles.stage}>
-        <OfficeScene employees={employees} />
+        <OfficeScene employees={employees} stage={officeStage(game)} />
       </main>
 
       <NotificationPanel events={game.eventLog} currentHour={clock.hour} />

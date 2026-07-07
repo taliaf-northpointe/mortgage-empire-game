@@ -294,6 +294,8 @@ export const TECH_SPEED_BONUS_PER_TIER = 0.05; // stage processing speed
 export const MARKETING_LEAD_BONUS_PER_TIER = 0.05; // lead chance
 export const MARKETING_REPUTATION_PER_PURCHASE = 2; // instant on purchase
 export const CX_TRUST_BONUS_PER_TIER = 0.05; // extra trust per Contact
+/** Office upgrade tiers unlock nicer rooms (Talia's staged art): 0–1 → 1, 2–3 → 2, 4–5 → 3. */
+export const OFFICE_ART_STAGES = 3;
 export const CX_HAPPINESS_BONUS_PER_2_TIERS = 1; // extra happiness per stage advance
 export const OFFICE_MORALE_BONUS_PER_2_TIERS = 1; // extra daily employee recovery
 

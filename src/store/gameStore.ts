@@ -15,7 +15,7 @@ import type { HireCandidate } from '../engine/employees';
 import { DISRUPTION_BY_KIND } from '../engine/content/disruptions';
 import { openBranch, scoutNeighborhood } from '../engine/map';
 import { completeTutorial } from '../engine/playerActions';
-import { purchaseUpgrade } from '../engine/upgrades';
+import { officeStage, purchaseUpgrade } from '../engine/upgrades';
 import {
   contactCustomer,
   moveLoanForward,
@@ -129,7 +129,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { game } = get();
     if (!game) return;
     const next = purchaseUpgrade(game, upgradeId);
-    if (next !== game) set({ game: next });
+    if (next !== game) {
+      set({ game: next });
+      // GDD §7 — the office visibly grows with its upgrades.
+      if (officeStage(next) > officeStage(game)) {
+        pushToast('🏢 The office got a glow-up! Take a look at your new space.');
+      }
+    }
   },
 
   scoutNeighborhood(id) {

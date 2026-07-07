@@ -4,6 +4,7 @@
  */
 import {
   MARKETING_REPUTATION_PER_PURCHASE,
+  OFFICE_ART_STAGES,
   UPGRADES_SCREEN_LEVEL,
   UPGRADES_TIER45_LEVEL,
 } from './constants';
@@ -33,6 +34,15 @@ export function tiersOwned(state: GameState, category: UpgradeCategory): number 
 
 export function totalPurchased(state: GameState): number {
   return UPGRADES.filter((u) => state.upgrades[u.id] === 'purchased').length;
+}
+
+/**
+ * Which office room the player has earned (GDD §7 — the office visibly grows).
+ * Office-category tiers map to Talia's staged art: 0–1 tiers → stage 1,
+ * 2–3 → stage 2, 4–5 → stage 3 (office-room-N.png + desk-N.png).
+ */
+export function officeStage(state: GameState): number {
+  return Math.min(OFFICE_ART_STAGES, 1 + Math.floor(tiersOwned(state, 'office') / 2));
 }
 
 /** Why a purchase isn't possible right now, or null if it is. */

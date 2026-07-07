@@ -5,17 +5,30 @@ const DESKS_PER_ROW = 4;
 
 const art = (name: string) => `${import.meta.env.BASE_URL}assets/art/${name}`;
 
+/** Each office stage's backdrop keeps its own native canvas (GDD §7 — the office grows). */
+const STAGE_CANVAS: Record<number, { w: number; h: number }> = {
+  1: { w: 1323, h: 1189 },
+  2: { w: 1316, h: 1195 },
+  3: { w: 1388, h: 1133 },
+};
+
 /**
  * The office scene (GDD §11 screen 2, §12 lofi-cozy art direction) —
  * Talia's generated room + desk + character sprites, composited with the
  * dynamic desk-per-employee layout and the idle bob kept from the SVG era.
+ * The room and desks swap with the office upgrade stage.
  */
-export function OfficeScene({ employees }: { employees: Employee[] }) {
+export function OfficeScene({ employees, stage = 1 }: { employees: Employee[]; stage?: number }) {
   const sorted = [...employees].sort((a, b) => a.id.localeCompare(b.id));
+  const canvas = STAGE_CANVAS[stage] ?? STAGE_CANVAS[1] ?? { w: 1323, h: 1189 };
 
   return (
-    <svg className={styles.scene} viewBox="0 0 1323 1189" aria-label="Your office">
-      <image href={art('office-room.png')} x="0" y="0" width="1323" height="1189" />
+    <svg
+      className={styles.scene}
+      viewBox={`0 0 ${canvas.w} ${canvas.h}`}
+      aria-label="Your office"
+    >
+      <image href={art(`office-room-${stage}.png`)} x="0" y="0" width={canvas.w} height={canvas.h} />
 
       {sorted.map((employee, i) => {
         const col = i % DESKS_PER_ROW;
@@ -38,8 +51,8 @@ export function OfficeScene({ employees }: { employees: Employee[] }) {
                 </g>
               )}
             </g>
-            {/* desk sprite in front */}
-            <image href={art('desk.png')} x={x} y={y - 40} width={240} />
+            {/* desk sprite in front — matches the office stage */}
+            <image href={art(`desk-${stage}.png`)} x={x} y={y - 40} width={240} />
             {/* name chip */}
             <rect x={x + 70} y={y + 160} width={100} height={26} rx={13} fill="var(--color-paper)" opacity="0.85" />
             <text x={x + 120} y={y + 178} textAnchor="middle" className={styles.deskLabel}>
