@@ -1,8 +1,10 @@
 .layout {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 230px 1fr 330px;
-  grid-template-rows: auto 1fr;
+  /* minmax(0, 1fr): a long event feed must scroll inside its panel, never
+     stretch the row — otherwise the office scene ends up below the fold */
+  grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     'sidebar kpis kpis'
     'sidebar stage panel';
@@ -340,6 +342,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }
