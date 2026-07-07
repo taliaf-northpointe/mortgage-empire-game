@@ -147,7 +147,12 @@ export function LoanDetailModal({
             <span className={styles.doneNote}>All done — keys handed over! 🏠</span>
           )}
           {loan.stage !== 'completed' && (
-            <Button onClick={() => contactCustomer(loan.id)}>Contact</Button>
+            <Button
+              onClick={() => contactCustomer(loan.id)}
+              title="A friendly check-in: +2 happiness, +0.25 trust — costs an hour of work on this loan"
+            >
+              Contact
+            </Button>
           )}
           {customer && (
             <Button variant="ghost" onClick={() => onOpenCustomer(customer.id)}>

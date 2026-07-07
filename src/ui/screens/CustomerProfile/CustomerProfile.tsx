@@ -227,7 +227,11 @@ export function CustomerProfile({ customerId, onSelectCustomer, onBack }: Custom
         >
           Continue Processing{loan && next ? ` → ${STAGE_DISPLAY_NAME[next]}` : ''}
         </Button>
-        <Button disabled={!loan} onClick={() => loan && contactCustomer(loan.id)}>
+        <Button
+          disabled={!loan}
+          onClick={() => loan && contactCustomer(loan.id)}
+          title="A friendly check-in: +2 happiness, +0.25 trust — costs an hour of work on their loan"
+        >
           Contact Customer
         </Button>
         <Button variant="ghost" disabled={!loan} onClick={() => loan && toggleDelay(loan.id)}>

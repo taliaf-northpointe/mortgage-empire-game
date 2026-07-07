@@ -9,42 +9,90 @@ interface TutorialStep {
   tips: string[];
 }
 
-/** GDD §11 — 7 steps, rewritten with authentic terms (GDD §13 decision 10). */
+/**
+ * GDD §11 — the guided tour, expanded to really teach the systems (numbers
+ * here mirror src/engine/constants.ts; update both together).
+ */
 const STEPS: TutorialStep[] = [
   {
     title: 'Welcome to your office! 🏠',
-    body: "This cozy desk is the start of something big. Time flows on its own — one hour every few seconds — and your job is to help real people become homeowners.",
-    tips: ['The top bar shows your money, reputation, and the interest rate.', 'Use the pause and speed buttons whenever you like.'],
+    body: "You run a small mortgage office, and your job is wonderfully simple to say: help your neighbors buy homes. Time moves on its own — about one in-game hour every 10 seconds — and each day runs from 9 AM to 6 PM. When evening comes, everything pauses on a summary of your day.",
+    tips: [
+      'The 1× / 2× / 3× buttons change how fast time flows; pause anytime.',
+      'Nothing bad happens while a menu or this tutorial is open — the clock waits for you.',
+    ],
   },
   {
-    title: 'Meet Sarah Chen',
-    body: "Sarah is a first-time homebuyer dreaming of a Cozy Bungalow. She's applying for an FHA loan — a favorite for first-timers thanks to its smaller down payment.",
-    tips: ['Open the Pipeline and click her card to see her loan.', 'Her profile shows her happiness, trust, and dream home.'],
+    title: 'The top bar is your dashboard 📊',
+    body: "Money is what you've earned minus what you spend on salaries and upgrades. Reputation (out of 100) grows as you close loans — it unlocks new neighborhoods later. Happiness is the average mood of your customers. And the Interest Rate drifts a little every day: when it's low, more people come shopping for homes.",
+    tips: [
+      'Money going down during the day is normal — payroll is charged daily.',
+      'Watch the rate: a dip is a great time to grow.',
+    ],
   },
   {
-    title: 'The Loan Pipeline',
-    body: 'Every loan travels the real mortgage journey: Lead → Pre-Qualification → Application → Document Collection → Processing → Underwriting → Clear to Close → Closing → Complete.',
-    tips: ['Bold terms with a little ⓘ have friendly explanations — tap one!', 'The Learning Center collects everything you discover.'],
+    title: 'Meet Sarah Chen 👋',
+    body: "Your very first customer! Sarah is a first-time homebuyer with her heart set on a Cozy Bungalow in Old Town. She's applying for an FHA loan — a favorite for first-timers because it allows a smaller down payment. Every customer has two feelings you can see: Happiness (how the process feels) and Trust (how much they believe in you).",
+    tips: [
+      'Open the Pipeline and click her card to follow her loan.',
+      'Her profile shows her photo, her story, her dream home, and her documents.',
+    ],
   },
   {
-    title: 'Document Collection',
-    body: "When Sarah's loan reaches Document Collection, peek inside to see what's still missing — things like Employment Verification and Tax Returns. Requesting documents brings them in faster.",
-    tips: ['Requested documents arrive first.', "Asking twice nags her a little — happiness matters!"],
+    title: 'The journey, part 1: getting started 🚶',
+    body: 'Every loan walks the real mortgage road, one stage at a time. Lead: someone curious says hello. Pre-Qualification: a quick look at their numbers. Application: the official paperwork, and they receive a Loan Estimate that spells out rate and costs. Document Collection: gathering their paperwork — more on that next.',
+    tips: [
+      'Your Loan Officer owns these early stages.',
+      'Bold terms with a little ⓘ have friendly explanations — tap any of them!',
+    ],
   },
   {
-    title: 'Underwriting to Closing',
-    body: "In Underwriting, the lender reviews everything and gives a Conditional Approval. Then it's Clear to Close, the signing table, and Funding — keys and confetti!",
-    tips: ['Every closed loan pays a fee and earns XP.', 'Happy customers at closing can earn you a badge.'],
+    title: 'The journey, part 2: to the keys 🔑',
+    body: "Processing: your team verifies everything that came in. Underwriting: the big careful review that ends in a Conditional Approval. Clear to Close: the happy green light. Closing: the signing table. Complete: the loan funds, keys change hands, and confetti flies. Your Processor, Underwriter, and Closer each own their part of this road.",
+    tips: [
+      'Loans move themselves through a stage as their owner works.',
+      'Between some stages, YOU click to advance — the button tells you when.',
+    ],
   },
   {
-    title: 'Your team',
-    body: 'Marcus, Dana, Priya, and Leo each own part of the journey. Watch their workload — an overworked teammate slows every loan they touch.',
-    tips: ['Hire help when workloads run hot.', 'Train and promote your stars — payroll is charged daily, so grow wisely.'],
+    title: 'Documents make the world go round 📄',
+    body: "In Document Collection, Sarah owes real paperwork: Employment Verification, Bank Statements, Government-Issued ID, Residence History, Credit Report Authorization, Tax Returns, and a Home Inspection Report. Documents trickle in on their own, but anything you Request jumps to the front of the line.",
+    tips: [
+      'The loan can only move on once every needed document is Collected.',
+      'Asking again after you already asked nags her — each reminder costs 2 happiness.',
+    ],
   },
   {
-    title: 'Your first day awaits',
-    body: "That's the whole loop: help customers, keep the team happy, grow your reputation, and one day open branches across the Meadowbrook Region. We'll be cheering you on!",
-    tips: ['Each evening pauses on an End-of-Day summary.', 'Your game saves automatically. Good luck! 🍀'],
+    title: 'Your four moves 🎯',
+    body: "On any loan you have four buttons. Request Documents: bring missing papers in faster. Continue Processing: push the loan to its next stage when it's ready. Contact: a friendly check-in that adds +2 happiness and +0.25 trust, but costs an hour of work on their loan. Delay: set a loan aside (and Resume it later) when your team is stretched thin.",
+    tips: [
+      'Contact is perfect after a document nag or a delay — it mends feelings.',
+      'A little popup confirms exactly what each action did.',
+    ],
+  },
+  {
+    title: 'Your team 👩‍💼👨‍💼',
+    body: "Marcus (Loan Officer), Dana (Processor), Priya (Underwriter), and Leo (Closer) each own stages of the journey. Each teammate can comfortably work a few loans at once — pile on more and their workload bar runs hot, and an overworked teammate works at HALF speed on everything.",
+    tips: [
+      'Hiring costs $1,000 + salary; training ($400) raises skill; promoting raises the skill cap.',
+      'Payroll is charged daily (1/30 of each monthly salary) — grow when loans support it.',
+    ],
+  },
+  {
+    title: 'How the money works 💰',
+    body: "Each closed loan pays you 1.75% of the loan amount — about $3,850 on Sarah's $220,000 loan. Completed loans keep paying: every 28 days, each one sends its monthly payment as servicing income. Spend your earnings on hiring, training, and the Upgrades tree (better tech, marketing, comfy chairs — all with real effects).",
+    tips: [
+      'Closing loans also earns XP: your career climbs from Loan Officer to Mortgage Mogul.',
+      'Level 3 (Branch Manager) unlocks Upgrades; Level 4 (CEO) unlocks the World Map.',
+    ],
+  },
+  {
+    title: "You're ready! 🎉",
+    body: "That's the loop: welcome new leads, gather documents, keep people happy, close loans, grow the team — and one day, scout the Meadowbrook Region and open branch offices in new neighborhoods. Every evening ends with a summary, and your game saves itself. Go make some homeowners!",
+    tips: [
+      'The Learning Center keeps every mortgage term you discover.',
+      'Finishing this tour earns +100 XP and +5 research. Good luck! 🍀',
+    ],
   },
 ];
 

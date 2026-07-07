@@ -13,6 +13,7 @@ import { WorldMap } from './ui/screens/WorldMap/WorldMap';
 import { LearningCenter } from './ui/screens/LearningCenter/LearningCenter';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
+import { Toasts } from './ui/components/Toasts';
 
 /** One id per designed screen (GDD §11). Screens arrive milestone by milestone. */
 export type ScreenId =
@@ -71,58 +72,67 @@ export function App() {
     return () => window.clearInterval(id);
   }, [hasGame, screen, speed, showEndOfDay, tutorialActive]);
 
-  // M7 — the world pauses on the End-of-Day summary (GDD §11 screen 8).
-  if (showEndOfDay && screen !== 'mainMenu' && hasGame) {
-    return <EndOfDay />;
-  }
+  const content = (() => {
+    // M7 — the world pauses on the End-of-Day summary (GDD §11 screen 8).
+    if (showEndOfDay && screen !== 'mainMenu' && hasGame) {
+      return <EndOfDay />;
+    }
 
-  if (screen === 'mainMenu') {
-    return <MainMenu onEnterGame={() => setScreen('dashboard')} onOpenSettings={() => setScreen('audioSettings')} />;
-  }
-  if (screen === 'pipeline') {
+    if (screen === 'mainMenu') {
+      return <MainMenu onEnterGame={() => setScreen('dashboard')} onOpenSettings={() => setScreen('audioSettings')} />;
+    }
+    if (screen === 'pipeline') {
+      return (
+        <Pipeline
+          onBack={() => setScreen('dashboard')}
+          onOpenCustomer={(id) => {
+            setCustomerId(id);
+            setScreen('customer');
+          }}
+        />
+      );
+    }
+    if (screen === 'learning') {
+      return <LearningCenter onBack={() => setScreen('dashboard')} />;
+    }
+    if (screen === 'employees') {
+      return <Employees onBack={() => setScreen('dashboard')} />;
+    }
+    if (screen === 'upgrades') {
+      return <Upgrades onBack={() => setScreen('dashboard')} />;
+    }
+    if (screen === 'map') {
+      return <WorldMap onBack={() => setScreen('dashboard')} />;
+    }
+    if (screen === 'audioSettings') {
+      return <AudioSettings onBack={() => setScreen(hasGame ? 'dashboard' : 'mainMenu')} />;
+    }
+    if (screen === 'customer' && customerId) {
+      return (
+        <CustomerProfile
+          customerId={customerId}
+          onSelectCustomer={setCustomerId}
+          onBack={() => setScreen('dashboard')}
+        />
+      );
+    }
     return (
-      <Pipeline
-        onBack={() => setScreen('dashboard')}
-        onOpenCustomer={(id) => {
-          setCustomerId(id);
-          setScreen('customer');
-        }}
-      />
+      <>
+        <Dashboard
+          speed={speed}
+          onSpeedChange={setSpeed}
+          onNavigate={setScreen}
+          onExitToMenu={() => setScreen('mainMenu')}
+        />
+        {tutorialActive && <TutorialOverlay />}
+      </>
     );
-  }
-  if (screen === 'learning') {
-    return <LearningCenter onBack={() => setScreen('dashboard')} />;
-  }
-  if (screen === 'employees') {
-    return <Employees onBack={() => setScreen('dashboard')} />;
-  }
-  if (screen === 'upgrades') {
-    return <Upgrades onBack={() => setScreen('dashboard')} />;
-  }
-  if (screen === 'map') {
-    return <WorldMap onBack={() => setScreen('dashboard')} />;
-  }
-  if (screen === 'audioSettings') {
-    return <AudioSettings onBack={() => setScreen(hasGame ? 'dashboard' : 'mainMenu')} />;
-  }
-  if (screen === 'customer' && customerId) {
-    return (
-      <CustomerProfile
-        customerId={customerId}
-        onSelectCustomer={setCustomerId}
-        onBack={() => setScreen('dashboard')}
-      />
-    );
-  }
+  })();
+
   return (
     <>
-      <Dashboard
-        speed={speed}
-        onSpeedChange={setSpeed}
-        onNavigate={setScreen}
-        onExitToMenu={() => setScreen('mainMenu')}
-      />
-      {tutorialActive && <TutorialOverlay />}
+      {content}
+      <Toasts />
     </>
   );
 }

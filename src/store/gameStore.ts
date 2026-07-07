@@ -25,6 +25,7 @@ import {
 import { advanceDay, advanceHour } from '../engine/tick';
 import type { DocumentKey, GameState } from '../engine/types';
 import { loadGame, saveGame, serializeSave } from './saveSystem';
+import { pushToast } from './toastStore';
 
 interface GameStore {
   game: GameState | null;
@@ -147,14 +148,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { game } = get();
     if (!game) return;
     const next = requestDocument(game, loanId, key);
-    if (next !== game) set({ game: next });
+    if (next !== game) {
+      set({ game: next });
+      const customer = next.customers[next.loans[loanId]?.customerId ?? ''];
+      if (customer) pushToast(`📨 Requested from ${customer.name} — requested papers arrive first.`);
+    }
   },
 
   contactCustomer(loanId) {
     const { game } = get();
     if (!game) return;
     const next = contactCustomer(game, loanId);
-    if (next !== game) set({ game: next });
+    if (next !== game) {
+      set({ game: next });
+      // Tell the player exactly what the friendly hello did (real deltas —
+      // Customer Experience upgrades can deepen the trust gain).
+      const customerId = game.loans[loanId]?.customerId ?? '';
+      const before = game.customers[customerId];
+      const after = next.customers[customerId];
+      if (before && after) {
+        const happier = after.happiness - before.happiness;
+        const trustier = Math.round((after.trust - before.trust) * 100) / 100;
+        const gains = [
+          happier > 0 ? `+${happier} happiness` : 'happiness already full',
+          trustier > 0 ? `+${trustier} trust` : 'trust already full',
+        ].join(', ');
+        pushToast(`💬 You checked in with ${after.name} — ${gains}. Cost an hour of work on their loan.`);
+      }
+    }
   },
 
   moveLoan(loanId) {
@@ -168,14 +189,42 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { game } = get();
     if (!game) return;
     const next = requestAllDocuments(game, loanId);
-    if (next !== game) set({ game: next });
+    if (next !== game) {
+      set({ game: next });
+      const loanBefore = game.loans[loanId];
+      const loanAfter = next.loans[loanId];
+      const customer = next.customers[loanBefore?.customerId ?? ''];
+      if (loanBefore && loanAfter && customer) {
+        const newlyRequested = Object.entries(loanAfter.documents).filter(
+          ([key, status]) =>
+            status === 'requested' && loanBefore.documents[key as DocumentKey] === 'missing',
+        ).length;
+        const nagged = customer.happiness < (game.customers[customer.id]?.happiness ?? 0);
+        pushToast(
+          newlyRequested > 0
+            ? `📨 Asked ${customer.name} for ${newlyRequested} ${newlyRequested === 1 ? 'document' : 'documents'} — requested papers arrive first.`
+            : `📨 Reminded ${customer.name} about their documents${nagged ? ' — they sighed a little (−2 happiness)' : ''}.`,
+        );
+      }
+    }
   },
 
   toggleDelay(loanId) {
     const { game } = get();
     if (!game) return;
     const next = toggleDelay(game, loanId);
-    if (next !== game) set({ game: next });
+    if (next !== game) {
+      set({ game: next });
+      const customer = next.customers[next.loans[loanId]?.customerId ?? ''];
+      const delayed = next.loans[loanId]?.delayed;
+      if (customer) {
+        pushToast(
+          delayed
+            ? `⏸️ ${customer.name}'s loan is set aside — no progress until you resume it.`
+            : `▶️ ${customer.name}'s loan is moving again!`,
+        );
+      }
+    }
   },
 
   unlockTerm(key) {
