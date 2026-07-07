@@ -8,14 +8,14 @@ import { Button } from '../../components/Button';
 import { moneyFull } from '../../format';
 import styles from './WorldMap.module.css';
 
-/** Chip positions over the illustrated map (fractions of the image). */
+/** Chip positions over the illustrated map (fractions of the image, tuned to Map 3). */
 const PLOTS: Record<string, { x: number; y: number }> = {
-  oldTown: { x: 0.262, y: 0.16 },
-  sunnyHeights: { x: 0.685, y: 0.165 },
-  riversideVillage: { x: 0.415, y: 0.47 },
-  uptownHills: { x: 0.9, y: 0.4 },
-  eastRidge: { x: 0.13, y: 0.76 },
-  greenValley: { x: 0.83, y: 0.75 },
+  oldTown: { x: 0.24, y: 0.27 }, // the clock-tower town square
+  sunnyHeights: { x: 0.64, y: 0.24 }, // the sunny hillside cluster
+  riversideVillage: { x: 0.45, y: 0.6 }, // the village inside the river ring
+  uptownHills: { x: 0.87, y: 0.46 }, // the grand homes across the river
+  eastRidge: { x: 0.16, y: 0.82 }, // the dense town by the lower bridge
+  greenValley: { x: 0.84, y: 0.85 }, // the far riverbend district
 };
 
 const STATUS_LABEL: Record<string, string> = {

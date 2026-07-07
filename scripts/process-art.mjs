@@ -187,13 +187,20 @@ for (let n = 1; n <= 30; n++) {
   save(`house-${n}.png`, resize(load(src), 640));
 }
 
-if (existsSync(join(ROOT, 'Home Menu.png'))) {
-  // keep only the illustrated house side; the live menu card replaces the
-  // baked-in title/buttons on the left
+if (existsSync(join(ROOT, 'Menu.png'))) {
+  // Menu.png is the clean golden-hour scene, no baked-in UI (2026-07-07) —
+  // it fills the whole menu screen and the live card floats over it.
+  save('menu-scene.png', resize(load('Menu.png'), 1800));
+} else if (existsSync(join(ROOT, 'Home Menu.png'))) {
+  // fallback: keep only the illustrated house side of the old mockup; the
+  // live menu card replaces the baked-in title/buttons on the left
   save('menu-scene.png', resize(cropFraction(load('Home Menu.png'), 0.49, 0.02, 0.99, 0.98), 1100));
 }
 
-if (existsSync(join(ROOT, 'Map 2.png'))) {
+if (existsSync(join(ROOT, 'Map 3.png'))) {
+  // Map 3 is clean full-bleed terrain — no baked-in UI panels, use it whole
+  save('map-region.png', resize(load('Map 3.png'), 1200));
+} else if (existsSync(join(ROOT, 'Map 2.png'))) {
   // slice the terrain out of the mockup, leaving the baked-in UI panels behind
   save('map-region.png', resize(cropFraction(load('Map 2.png'), 0.165, 0.08, 0.815, 0.84), 1200));
 }
