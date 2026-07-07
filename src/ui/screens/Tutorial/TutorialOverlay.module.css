@@ -52,6 +52,7 @@
   left: 0;
   right: 0;
   height: 6px;
+  z-index: 1; /* above the spotlight scrim, like the card */
   background: color-mix(in srgb, var(--color-paper) 30%, transparent);
 }
 
@@ -62,6 +63,10 @@
 }
 
 .card {
+  /* Stack above the spotlight's giant shadow-scrim — the card itself stays
+     bright; only the background dims. */
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 12px;
