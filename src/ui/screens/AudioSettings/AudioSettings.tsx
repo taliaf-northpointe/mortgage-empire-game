@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
 import { audioManager } from '../../../audio/AudioManager';
+import { applyTheme, loadTheme } from '../../theme';
+import type { Theme } from '../../theme';
 import { Button } from '../../components/Button';
 import styles from './AudioSettings.module.css';
 
@@ -9,8 +12,14 @@ interface AudioSettingsProps {
 
 export function AudioSettings({ onBack }: AudioSettingsProps) {
   const [state, setState] = useState(() => audioManager.getState());
+  const [theme, setTheme] = useState<Theme>(() => loadTheme());
 
   useEffect(() => audioManager.subscribe(() => setState(audioManager.getState())), []);
+
+  const chooseTheme = (next: Theme) => {
+    applyTheme(next);
+    setTheme(next);
+  };
 
   const settings = state.settings;
 
@@ -29,9 +38,11 @@ export function AudioSettings({ onBack }: AudioSettingsProps) {
       <section className={styles.panel}>
         <div className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>Audio Settings</p>
+            <p className={styles.eyebrow}>Settings</p>
             <h1>Shape the room tone</h1>
-            <p className={styles.copy}>Fine-tune the soundtrack, ambience, and comfort of your office.</p>
+            <p className={styles.copy}>
+              Fine-tune the soundtrack, ambience, lighting, and comfort of your office.
+            </p>
           </div>
           <Button variant="ghost" onClick={onBack}>
             Back
@@ -63,6 +74,26 @@ export function AudioSettings({ onBack }: AudioSettingsProps) {
           <Toggle label="Mute Music" checked={settings.muteMusic} onChange={() => audioManager.toggleMute('music')} />
           <Toggle label="Mute Sound Effects" checked={settings.muteSfx} onChange={() => audioManager.toggleMute('sfx')} />
           <Toggle label="Mute Ambience" checked={settings.muteAmbience} onChange={() => audioManager.toggleMute('ambience')} />
+        </div>
+
+        <div className={styles.themeSection}>
+          <span className={styles.label}>Appearance</span>
+          <div className={styles.themeButtons}>
+            <Button
+              variant={theme === 'light' ? 'primary' : 'secondary'}
+              onClick={() => chooseTheme('light')}
+              aria-pressed={theme === 'light'}
+            >
+              <Sun size={14} /> Light
+            </Button>
+            <Button
+              variant={theme === 'dark' ? 'primary' : 'secondary'}
+              onClick={() => chooseTheme('dark')}
+              aria-pressed={theme === 'dark'}
+            >
+              <Moon size={14} /> Cozy Dark
+            </Button>
+          </div>
         </div>
 
         <div className={styles.actions}>

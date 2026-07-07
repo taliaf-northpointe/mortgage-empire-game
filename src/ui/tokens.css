@@ -51,6 +51,40 @@
   --text-label: 10px;
 }
 
+/*
+ * Dark mode — same cozy warmth, lights off. Only the neutral roles flip;
+ * accents brighten slightly for contrast. Toggled via data-theme on <html>
+ * (src/ui/theme.ts), stored per browser, separate from game saves.
+ */
+:root[data-theme='dark'] {
+  /* Warm primaries */
+  --color-sunset: #edb069;
+  --color-cream: #201a11; /* page background — deep warm brown, never black */
+  --color-terracotta: #e07d70;
+  --color-honey: #f7cf5c;
+
+  /* Cool accents */
+  --color-sky: #77b9e8;
+  --color-sage: #76b98c;
+  --color-lavender: #af97e3;
+  --color-rose: #ef88a7;
+
+  /* Neutrals */
+  --color-ink: #f0e8d6;
+  --color-cocoa: #b5a88e;
+  --color-sand: #4c4232;
+  --color-paper: #2d2519; /* cards */
+
+  /* Semantic */
+  --color-success: #76b98c;
+  --color-warning: #edb069;
+  --color-danger: #e07d70;
+  --color-info: #77b9e8;
+
+  /* Elevation & borders */
+  --shadow-soft: 0 6px 20px #00000066;
+}
+
 /* Base */
 * {
   box-sizing: border-box;

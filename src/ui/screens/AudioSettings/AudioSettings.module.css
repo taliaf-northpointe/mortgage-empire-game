@@ -8,7 +8,7 @@
 
 .panel {
   width: min(760px, 100%);
-  background: rgba(255, 251, 244, 0.96);
+  background: var(--color-paper);
   border: var(--border-soft);
   box-shadow: var(--shadow-soft);
   border-radius: var(--radius-xl);
@@ -77,10 +77,23 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--color-cream);
   border: var(--border-soft);
   border-radius: var(--radius-md);
   padding: 10px 14px;
+}
+
+.themeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: var(--border-soft);
+  padding-top: 16px;
+}
+
+.themeButtons {
+  display: flex;
+  gap: 10px;
 }
 
 .actions {
