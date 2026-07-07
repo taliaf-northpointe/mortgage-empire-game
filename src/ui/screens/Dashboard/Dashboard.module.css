@@ -338,6 +338,18 @@
   border-color: var(--color-terracotta);
 }
 
+/* GDD §6 — active office mishap (wifi down, printer jam…) */
+.disruptionChip {
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-danger) 14%, var(--color-paper));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, var(--color-paper));
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
 .eventList {
   display: flex;
   flex-direction: column;

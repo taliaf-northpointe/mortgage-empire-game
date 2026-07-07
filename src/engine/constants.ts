@@ -243,7 +243,9 @@ export const SALARY_RANGE_BY_ROLE: Record<Role, { min: number; max: number }> = 
 };
 
 /** GDD §2/§4 (M6) — simple daily lead generation until M8 events */
-export const LEAD_SPAWN_CHANCE = 0.6; // per morning, before modifiers
+export const LEAD_SPAWN_CHANCE = 0.7; // per morning, before modifiers
+/** Warm opening: a lead is guaranteed every morning until this many total loans exist. */
+export const WARM_OPENING_LOANS = 4;
 export const MAX_ACTIVE_LOANS = 6;
 
 /* ── M7: Economy (GDD §8) ─────────────────────────────────────────── */
@@ -313,6 +315,20 @@ export const TUTORIAL_RESEARCH = 5;
  * (Level 4 ≈ 8–9 loans), and upgrade costs were reviewed and left as-is;
  * the only new levers are the branch bonuses above.
  */
+
+/* ── Office disruptions (GDD §6 negative events; playtest request 2026-07-06) ── */
+
+/** The honeymoon: no mishaps before this day. */
+export const DISRUPTION_START_DAY = 6;
+/** Per-morning chance once disruptions begin, before the level scaling. */
+export const DISRUPTION_BASE_CHANCE = 0.1;
+/** Success breeds chaos — each player level past 1 adds this much chance. */
+export const DISRUPTION_CHANCE_PER_LEVEL = 0.03;
+export const DISRUPTION_CHANCE_MAX = 0.25;
+/** systemUpdate: everyone works at this fraction of normal speed. */
+export const SYSTEM_UPDATE_SPEED_FACTOR = 0.5;
+/** coffeeOut: instant morale hit to the whole team. */
+export const COFFEE_OUT_HAPPINESS_HIT = 4;
 
 /** New-game starting values (GDD §8 HUD examples; coins are a tunable) */
 export const STARTING_COINS = 12_000;

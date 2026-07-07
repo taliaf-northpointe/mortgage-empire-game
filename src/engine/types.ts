@@ -99,6 +99,9 @@ export interface Employee {
   tag: 'star' | 'readyToPromote' | 'overworked' | 'needsBreak' | null;
 }
 
+/** GDD §6 — office mishaps that make a good day harder. */
+export type DisruptionKind = 'wifiDown' | 'printerJam' | 'systemUpdate' | 'coffeeOut';
+
 export interface GameEvent {
   id: string; // deterministic: "evt-<day>-<hour>-<n>"
   day: number;
@@ -158,5 +161,7 @@ export interface GameState {
   todayRevenueByHour: number[]; // 10 running totals for the current day (M7); reset at rollover
   xpAtDayStart: number; // snapshot at rollover so the summary can report XP earned today (v7)
   glossary: Record<string, GlossaryProgress>;
+  /** Active office mishap (GDD §6); optional — absent/null when everything hums along. */
+  disruption?: { kind: DisruptionKind; hoursLeft: number } | null;
   rngSeed: number;
 }

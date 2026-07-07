@@ -27,11 +27,13 @@ import {
   STAGE_DISPLAY_NAME,
   STAGE_HOURS_REQUIRED,
   STAR_RATING_BASE,
+  SYSTEM_UPDATE_SPEED_FACTOR,
   TECH_SPEED_BONUS_PER_TIER,
   UNPROMPTED_DOC_HOURS,
   UNPROMPTED_DOC_HOURS_EAGER,
   XP_PER_COMPLETED_LOAN,
 } from './constants';
+import { maybeSpawnDisruption, tickDisruption } from './content/disruptions';
 import { maybeSpawnLead } from './content/leads';
 import {
   awardAchievement,
@@ -193,7 +195,11 @@ export function docDeliveryCadence(customer: Customer | undefined, hasRequested:
 }
 
 /** Advance one loan by one working hour. Mutates the (already cloned) state. */
-function workLoan(state: GameState, loan: Loan): void {
+function workLoan(
+  state: GameState,
+  loan: Loan,
+  mishap: { docsBlocked: boolean; speedFactor: number } = { docsBlocked: false, speedFactor: 1 },
+): void {
   if (loan.delayed) return; // GDD §4 action 4 — set aside, nothing moves
 
   const owningRole = ROLE_BY_STAGE[loan.stage];
@@ -209,6 +215,7 @@ function workLoan(state: GameState, loan: Loan): void {
   // trait-driven cadence — requested ones first and faster.
   if (loan.stage === 'documentCollection') {
     const missing = missingDocs(loan);
+    if (missing.length > 0 && mishap.docsBlocked) return; // GDD §6 — the mail is stuck
     if (missing.length > 0) {
       loan.progressHours += 1; // hours spent waiting on documents
       const customer = state.customers[loan.customerId];
@@ -239,7 +246,9 @@ function workLoan(state: GameState, loan: Loan): void {
   const techBoost = 1 + TECH_SPEED_BONUS_PER_TIER * tiersOwned(state, 'technology');
   const hoursBefore = loan.progressHours;
   loan.progressHours =
-    Math.round((loan.progressHours + (worker ? effectiveness(worker) : 1) * techBoost) * 100) / 100;
+    Math.round(
+      (loan.progressHours + (worker ? effectiveness(worker) : 1) * techBoost * mishap.speedFactor) * 100,
+    ) / 100;
 
   // Processing sub-steps (GDD §3 v2): Appraisal, then Title Review.
   if (
@@ -266,10 +275,20 @@ function workLoan(state: GameState, loan: Loan): void {
 export function advanceHour(state: GameState): GameState {
   const s = structuredClone(state);
   deriveWorkloads(s); // workload reflects assignments before anyone works (GDD §5)
-  for (const loan of Object.values(s.loans)) {
-    if (loan.stage === 'completed') continue;
-    workLoan(s, loan);
+
+  // GDD §6 — an active office mishap changes how (or whether) work happens.
+  const wifiDown = s.disruption?.kind === 'wifiDown';
+  const mishap = {
+    docsBlocked: s.disruption?.kind === 'printerJam',
+    speedFactor: s.disruption?.kind === 'systemUpdate' ? SYSTEM_UPDATE_SPEED_FACTOR : 1,
+  };
+  if (!wifiDown) {
+    for (const loan of Object.values(s.loans)) {
+      if (loan.stage === 'completed') continue;
+      workLoan(s, loan, mishap);
+    }
   }
+  tickDisruption(s);
   deriveWorkloads(s);
   updateEmployeeTags(s);
   s.clock.hour += 1;
@@ -375,6 +394,9 @@ export function advanceDay(state: GameState): GameState {
 
   // GDD §2 — more customers arrive (seeded, capped; GDD §13 decision 8).
   maybeSpawnLead(s);
+
+  // GDD §6 — and some mornings, the office has other plans.
+  maybeSpawnDisruption(s);
 
   return s;
 }

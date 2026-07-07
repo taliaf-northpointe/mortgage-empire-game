@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { audioManager } from '../../../audio/AudioManager';
 import { DAY_END_HOUR, REAL_MS_PER_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
+import { DISRUPTION_BY_KIND } from '../../../engine/content/disruptions';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
 import { GlossaryTerm } from '../../glossary/GlossaryTerm';
@@ -139,6 +140,15 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
             />
           )}
         </span>
+        {game.disruption && (
+          <span
+            className={styles.disruptionChip}
+            title={DISRUPTION_BY_KIND[game.disruption.kind]?.detail}
+          >
+            {DISRUPTION_BY_KIND[game.disruption.kind]?.chip} ·{' '}
+            {game.disruption.hoursLeft}h
+          </span>
+        )}
 
         <div className={styles.kpis}>
           <Kpi icon={<Coins size={15} />} label="Money" value={`$${currencies.coins.toLocaleString('en-US')}`} />

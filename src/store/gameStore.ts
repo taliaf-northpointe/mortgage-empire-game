@@ -12,6 +12,7 @@ import {
   trainEmployee,
 } from '../engine/employees';
 import type { HireCandidate } from '../engine/employees';
+import { DISRUPTION_BY_KIND } from '../engine/content/disruptions';
 import { openBranch, scoutNeighborhood } from '../engine/map';
 import { completeTutorial } from '../engine/playerActions';
 import { purchaseUpgrade } from '../engine/upgrades';
@@ -103,12 +104,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
   tick() {
     const { game } = get();
     if (!game) return;
+    let next: GameState;
     if (game.clock.hour > DAY_END_HOUR) {
       // The day is over: roll the calendar and pause on the End-of-Day
       // summary (GDD §11 screen 8).
-      set({ game: advanceDay(game), showEndOfDay: true });
+      next = advanceDay(game);
+      set({ game: next, showEndOfDay: true });
     } else {
-      set({ game: advanceHour(game) });
+      next = advanceHour(game);
+      set({ game: next });
+    }
+    // GDD §6 — a mishap starting or clearing deserves a headline.
+    if ((next.disruption?.kind ?? null) !== (game.disruption?.kind ?? null)) {
+      const def = DISRUPTION_BY_KIND[(next.disruption ?? game.disruption)?.kind ?? 'wifiDown'];
+      if (def) pushToast(next.disruption ? `${def.title} ${def.detail}` : `${def.overTitle} ${def.overDetail}`);
     }
   },
 

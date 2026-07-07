@@ -87,6 +87,14 @@ const STEPS: TutorialStep[] = [
     ],
   },
   {
+    title: 'Your first moves, step by step 🗺️',
+    body: "Here's exactly how to start strong. 1: Set speed to 2× — the first days have waiting in them. 2: Open the Pipeline and click Sarah's card. 3: When she reaches Document Collection, hit Request Documents. 4: While papers arrive, open Employees and note everyone's workload. 5: When Sarah's documents are all Collected, click Continue Processing — then let your team carry her to the keys. New neighbors will walk in every morning at first, so keep the loop going!",
+    tips: [
+      'Short on cash early? Payroll is small — one closing covers about a week of it.',
+      'If a loan looks stuck, its card tells you who is working it and how long is left.',
+    ],
+  },
+  {
     title: "You're ready! 🎉",
     body: "That's the loop: welcome new leads, gather documents, keep people happy, close loans, grow the team — and one day, scout the Meadowbrook Region and open branch offices in new neighborhoods. Every evening ends with a summary, and your game saves itself. Go make some homeowners!",
     tips: [

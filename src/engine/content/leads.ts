@@ -9,6 +9,7 @@ import {
   LEAD_CHANCE_MAX,
   LEAD_CHANCE_MIN,
   LEAD_SPAWN_CHANCE,
+  WARM_OPENING_LOANS,
   LOAN_PRODUCT_LABEL,
   MARKETING_LEAD_BONUS_PER_TIER,
   MAX_ACTIVE_LOANS,
@@ -89,7 +90,11 @@ export function maybeSpawnLead(state: GameState): void {
   );
 
   const rng = mulberry32((state.rngSeed ^ (state.clock.day * 2_654_435_761)) >>> 0);
-  if (rng.next() >= chance) return;
+  // Warm opening (playtest 2026-07-06: "the game starts really slow") — the
+  // first few mornings always bring someone new; luck only kicks in once the
+  // office has a real book of business.
+  const warmOpening = Object.keys(state.loans).length < WARM_OPENING_LOANS;
+  if (rng.next() >= chance && !warmOpening) return;
 
   // Everyone gets their moment: a portrait never repeats until the whole
   // cast has walked in, then the least-seen faces return first — with the
