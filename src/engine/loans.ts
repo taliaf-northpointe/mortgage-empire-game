@@ -33,9 +33,18 @@ export function missingDocs(loan: Loan): DocumentKey[] {
   });
 }
 
+/** Required documents still awaiting the underwriting sign-off (M9). */
+export function unapprovedDocs(loan: Loan): DocumentKey[] {
+  return ALL_DOC_KEYS.filter(
+    (key) => loan.documents[key] !== 'notRequired' && !loan.docApprovals?.[key],
+  );
+}
+
 /** Stage requirements beyond progress-hours (TDD §4a). */
 export function requirementsMet(loan: Loan): boolean {
   if (loan.stage === 'documentCollection') return missingDocs(loan).length === 0;
+  // M9 — underwriting signs off on every document, by the underwriter or by you.
+  if (loan.stage === 'underwriting') return unapprovedDocs(loan).length === 0;
   return true;
 }
 

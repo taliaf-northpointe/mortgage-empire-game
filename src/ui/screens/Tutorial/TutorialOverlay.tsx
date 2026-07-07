@@ -18,8 +18,8 @@ interface TutorialStep {
  */
 const STEPS: TutorialStep[] = [
   {
-    title: 'Welcome to your office! 🏠',
-    body: "You run a small mortgage office, and your mission is wonderfully simple to state: help your neighbors become homeowners. Time advances on its own — roughly one in-game hour every 10 seconds — and each business day runs 9 AM to 6 PM before pausing on an evening summary.",
+    title: "It's your company — and today, a company of one 🏠",
+    body: "Welcome to your mortgage office. You founded it, and right now you ARE it: every stage of every loan is yours to work by hand until you hire someone to take it over. Time advances on its own — roughly one in-game hour every 10 seconds, 9 AM to 6 PM — and each evening pauses on a summary of your day.",
     tips: [
       'The highlighted controls set the pace: pause, 1×, 2×, or 3×.',
       'Menus, this tour, and the evening summary all stop the clock — nothing happens without you.',
@@ -28,79 +28,79 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'Your vital signs 📊',
-    body: 'These five numbers tell you how the office is doing at a glance. Money is earnings minus salaries and upgrades. Reputation (out of 100) rises with every closed loan and unlocks new neighborhoods. Active Loans counts files in motion. Happiness averages your customers\' moods. And the Interest Rate drifts daily — when it dips, more buyers come shopping.',
+    body: 'These five numbers tell you how the office is doing at a glance. Money is earnings minus salaries and upgrades (a solo office pays no payroll at all). Reputation (out of 100) rises with every closed loan, unlocks neighborhoods, and even makes customers trust you sooner. Active Loans counts files in motion. Happiness averages your customers\' moods. The Interest Rate drifts daily — when it dips, more buyers come shopping.',
     tips: [
-      'Money declining during a quiet day is normal: payroll is charged daily.',
+      'Once you have staff, payroll is charged daily — money dipping on quiet days is normal.',
       'A low-rate morning is an excellent time to grow.',
     ],
     highlight: 'kpis',
   },
   {
     title: 'Meet Sarah Chen 👋',
-    body: "Your first customer is already waiting. Sarah is a first-time homebuyer with her heart set on a Cozy Bungalow in Old Town, applying for an FHA loan — a program first-timers favor because it permits a smaller down payment. Every customer shows two feelings: Happiness (how the process feels) and Trust (how much they believe in you).",
+    body: "Your first customer is already waiting. Sarah is a first-time homebuyer with her heart set on a Cozy Bungalow in Old Town, applying for an FHA loan — a program first-timers favor because it permits a smaller down payment. Every customer shows two feelings: Happiness (how the process feels) and Trust (how much they believe in you). Both genuinely change how they behave.",
     tips: [
-      'Open the highlighted Pipeline and click her card to follow her loan.',
+      'Open the highlighted Pipeline and click her card to work her loan.',
       'Her profile holds her photo, her story, her dream home, and her documents.',
     ],
     highlight: 'nav-pipeline',
   },
   {
     title: 'The journey, part 1: getting started 🚶',
-    body: 'Every loan walks the authentic mortgage road, one stage at a time. Lead: a curious neighbor says hello. Pre-Qualification: a quick estimate of what they can afford. Application: the official paperwork, answered by a Loan Estimate that spells out the rate and costs. Document Collection: gathering their real paperwork — more on that shortly.',
+    body: 'Every loan walks the authentic mortgage road. Lead: a curious neighbor says hello. Pre-Qualification: a quick estimate of what they can afford. Application: the official paperwork, answered by a Loan Estimate. Each stage has a real working time — and until you hire a Loan Officer, YOU push these stages along: open the loan and press Continue when its time is served.',
     tips: [
-      'Your Loan Officer owns these early stages.',
+      'A Loan Officer automates these early stages entirely (you can still click ahead of them).',
       'Bold terms with a little ⓘ open friendly explanations — tap any of them.',
     ],
     highlight: 'nav-pipeline',
   },
   {
     title: 'The journey, part 2: to the keys 🔑',
-    body: 'Processing: your team verifies everything that came in, ordering the Appraisal and Title Review. Underwriting: the decisive review — expect it to take the better part of a day; careful decisions are not rushed. It ends in a Conditional Approval. Clear to Close: the green light. Closing: the signing table. Complete: the loan funds, keys change hands, and confetti flies.',
+    body: "Document Collection: gathering the customer's real paperwork. Processing: verifying it all, with the Appraisal and Title Review. Underwriting: the decisive review — every single document needs a sign-off, and the decision takes the better part of a day. Clear to Close, then Closing: the signing table. Complete: the loan funds and keys change hands. Solo, YOU do each part; each hire automates theirs.",
     tips: [
-      'Loans progress automatically while their owner works.',
-      'Between certain stages YOU click to advance — the button tells you when it\'s ready.',
+      'Underwriting solo: open the loan and Approve each document yourself, then wait out the review.',
+      'The Closer automates the final stretch; solo, you press "Close the loan" yourself.',
     ],
   },
   {
     title: 'Documents make the world go round 📄',
-    body: 'In Document Collection, Sarah owes genuine paperwork: Employment Verification, Bank Statements, Government-Issued ID, Residence History, Credit Report Authorization, Tax Returns, and a Home Inspection Report. Documents trickle in on their own schedule, but anything you Request jumps to the front of the line.',
+    body: "Customers owe genuine paperwork: Employment Verification, Bank Statements, Government-Issued ID, and more. Solo, nothing arrives until YOU press Request Documents — a Processor requests everything automatically the moment a loan reaches Document Collection. Trusting customers respond faster; happy customers send correct papers; a stressed or forgetful one occasionally sends the wrong thing and has to redo it.",
     tips: [
-      'The loan advances only once every required document reads Collected.',
-      'Repeating a request nags her — each reminder costs 2 happiness.',
+      'Re-requesting papers they already promised irritates them more each time — the cost escalates.',
+      'A botched document is a hint: check in with them before asking again.',
     ],
   },
   {
     title: 'Your four moves 🎯',
-    body: "On any loan you command four actions. Request Documents: accelerate the missing papers. Continue Processing: advance the loan when its stage is satisfied. Contact: a friendly check-in worth +2 happiness and +0.25 trust, at the cost of one hour's work on their file. Delay: shelve a loan (and Resume it later) when the team is stretched thin.",
+    body: "On any loan you command four actions. Request Documents: start (or hurry) the paperwork. Continue Processing: advance the loan once its stage requirements AND its working time are met. Contact: a friendly check-in worth +2 happiness and growing trust — the stronger your reputation, the more your word counts — at the cost of one hour's work on the file. Delay: shelve a loan and Resume it later.",
     tips: [
-      'Contact is the remedy after a document nag or a delay — it mends feelings.',
+      'Contact is the remedy after a nag, a delay, or a botched document — it mends feelings.',
       'A popup confirms precisely what each action accomplished.',
     ],
   },
   {
-    title: 'Your team, at their desks 👩‍💼',
-    body: 'The people in this room each own part of the journey: your Loan Officer opens files, the Processor gathers and verifies, the Underwriter renders the decision, and the Closer brings it home. Each teammate comfortably handles a few loans at once — overload someone and their workload bar runs hot, cutting their speed in half on everything they touch.',
+    title: 'Hiring: how the office comes alive 👩‍💼',
+    body: 'Every hire automates their stage of the journey — the Loan Officer opens files, the Processor chases paperwork, the Underwriter signs off documents, the Closer lands the keys — while manual control always remains yours. Their pace is never fixed: skill, happiness, and level all speed them up, and workload past 75% slows them down and grinds their morale. You can also let people go to cut payroll, but everyone who stays takes it hard.',
     tips: [
-      'Hiring costs $1,000 plus salary; training ($400) raises skill; promotion lifts the ceiling.',
-      'Payroll is charged daily at 1/30 of each monthly salary — expand when closings support it.',
+      'A happy, seasoned teammate is dramatically faster than a miserable rookie.',
+      'Watch the workload bars: past 75% people get slower AND unhappier every day.',
     ],
-    highlight: 'office',
+    highlight: 'nav-employees',
   },
   {
     title: 'How the money works 💰',
-    body: "Every closed loan pays 1.75% of its amount — roughly $3,850 on Sarah's $220,000 loan — and completed loans keep contributing: each sends its monthly payment as servicing income every 28 days. Reinvest through the Upgrades tree: training, technology, marketing, customer experience, and office comforts, each with a real mechanical effect.",
+    body: "Every closed loan pays 1.75% of its amount — roughly $3,850 on Sarah's $220,000 loan — and completed loans keep sending their monthly payment as servicing income every 28 days. Solo you keep every dollar; hires cost payroll daily but multiply your throughput. Reinvest through the Upgrades tree: training, technology, marketing, customer experience, and office comforts.",
     tips: [
       'Office upgrades literally renovate the room — every second tier unveils a nicer space.',
-      'Closings earn XP too: Level 3 (Branch Manager) unlocks Upgrades; Level 4 (CEO) opens the World Map.',
+      'Closings earn XP: Level 3 (Branch Manager) unlocks Upgrades; Level 4 (CEO) opens the World Map.',
     ],
     highlight: 'nav-upgrades',
   },
   {
     title: 'Some days misbehave 🌧️',
-    body: "From day 6 onward, an occasional morning brings a mishap: the Wi-Fi drops and a ticket goes to IT (nothing moves until it's fixed), the printer jams (documents stop arriving), a surprise system update halves everyone's speed, or the coffee machine breaks and morale dips. A chip appears beside the clock counting down the hours.",
+    body: "From day 6 onward, an occasional morning brings a mishap: the Wi-Fi drops, the printer jams, a surprise system update halves everyone's speed, or the coffee machine breaks. Without IT on staff, an outsourced tech takes their time. At level 5 you can hire your own IT Support — outages become half as frequent, get fixed sooner, and sting morale less.",
     tips: [
-      'Mishaps grow slightly more frequent as your career advances — success breeds chaos.',
-      "They always resolve on their own; plan around them rather than panic.",
+      'A chip appears beside the clock counting down the hours until the fix.',
+      'In-house IT quietly pays for itself in saved hours and happier people.',
     ],
     highlight: 'clock',
   },
@@ -112,25 +112,25 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'The road ahead 📈',
-    body: "Your career climbs through thirty levels, and the game grows with you. Each level brings more leads through the door and more room in the pipeline. Every fifth level, a pop quiz tests you on a mortgage term — a correct answer pays 150 XP. And mastery invites adversity: from level 10, underwriting occasionally bounces a loan back for a resubmitted document, and from level 20, a truly neglected customer will take their business elsewhere.",
+    body: 'Your career climbs through thirty levels and the game grows with you: more leads each level, more room in the pipeline, and a pop quiz on a mortgage term every fifth level (+150 XP for a correct answer). Mastery invites adversity — from level 10 underwriting can bounce a loan back for a resubmitted document, and from level 20 a neglected customer will walk away. At level 15, Compliance unlocks: hire one before the level-20 audit and you pass with honors; face the auditors without one and your reputation pays.',
     tips: [
       'Reading any term in the Learning Center earns +10 XP — knowledge is career fuel.',
-      'A bounced loan returns through Document Collection; a walkaway costs reputation. Contact is your prevention for both.',
+      'The audit only happens once. Be ready for it.',
     ],
     highlight: 'nav-learning',
   },
   {
     title: 'Your first moves, step by step 🗺️',
-    body: "Here's precisely how to start strong. 1: Set speed to 2× — early days involve waiting. 2: Open the Pipeline and click Sarah's card. 3: When she reaches Document Collection, press Request Documents. 4: While papers arrive, open Employees and note everyone's workload. 5: Once every document reads Collected, press Continue Processing — then let your team carry her to the keys. A new neighbor will walk in every morning at first, so keep the loop turning.",
+    body: "Here's exactly how to start strong, alone. 1: Set speed to 2×. 2: Open the Pipeline, click Sarah, and press Continue whenever her stage's time is served — you're the Loan Officer today. 3: In Document Collection, press Request Documents — you're the Processor too. 4: In Underwriting, Approve each document, then wait out the review. 5: Press Close the loan and collect your first fee. 6: Spend it on your first hire and watch that stage start running itself.",
     tips: [
-      'Short on cash early? One closing covers about a week of payroll.',
-      'If a loan looks stuck, its card names who owns it and how long remains.',
+      'Solo work moves at half a specialist\'s pace — every hire is a real acceleration.',
+      'If a loan looks stuck, its card says exactly what (or who) it\'s waiting on.',
     ],
     highlight: 'speed',
   },
   {
     title: "You're ready! 🎉",
-    body: "That's the loop: welcome new leads, gather documents, keep people happy, close loans, grow the team — and one day, scout the Meadowbrook Region and open branches in new neighborhoods. Every evening ends with a summary, your game saves itself, and this tour is always available again from the ? button in the header.",
+    body: "That's the loop: welcome leads, gather documents, sign off files, close loans, and grow from a company of one into a team that hums without you — then scout the Meadowbrook Region and open branches. Every evening ends with a summary, your game saves itself, and this tour is always available again from the ? button in the header.",
     tips: [
       'The Learning Center keeps every mortgage term you discover — and Settings hides a Cozy Dark theme.',
       'Finishing this tour the first time earns +100 XP and +5 research. Good luck! 🍀',

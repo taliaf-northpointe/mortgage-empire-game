@@ -13,15 +13,24 @@ import { createStarterState, STARTER_LOAN_ID } from '../../src/engine/content/st
 import { awardAchievement, checkLevelUp, driftInterestRate } from '../../src/engine/economy';
 import { advanceDay, advanceHour } from '../../src/engine/tick';
 import type { GameState } from '../../src/engine/types';
+import { withClassicTeam } from '../helpers';
+
+// Payroll and auto-advance tests need staff (M9: new games start solo).
+const staffedStarter = (seed?: number) => withClassicTeam(createStarterState(seed));
 
 describe('payroll (GDD §8, charged from M7)', () => {
   it('charges 1/30 of monthly salaries at day end and records it', () => {
-    const s = advanceDay(createStarterState());
+    const s = advanceDay(staffedStarter());
     const monthly = Object.values(s.employees).reduce((sum, e) => sum + e.salaryMonthly, 0);
     const expected = Math.round(monthly / PAYROLL_DAYS_PER_MONTH);
     const today = s.dayHistory[0];
     expect(today?.payroll).toBe(expected);
     expect(s.currencies.coins).toBeLessThan(12_000); // money pressure is real
+  });
+
+  it('a solo founder pays no payroll at all (M9)', () => {
+    const s = advanceDay(createStarterState());
+    expect(s.dayHistory[0]?.payroll).toBe(0);
   });
 });
 
@@ -92,7 +101,7 @@ describe('REGRESSION (M8.1): hour-by-hour play must still produce a real summary
   it('records completions, revenue, and XP when the day ticks one hour at a time', () => {
     // This mirrors the live store loop (advanceHour per tick, advanceDay only
     // at rollover) — the bug was a summary that always read zero this way.
-    let s = createStarterState();
+    let s = staffedStarter();
     const loan = s.loans[STARTER_LOAN_ID];
     if (!loan) throw new Error('missing loan');
     loan.stage = 'closing';
@@ -116,7 +125,7 @@ describe('REGRESSION (M8.1): hour-by-hour play must still produce a real summary
 describe('End-of-Day data (GDD §11 screen 8)', () => {
   it('records hourly revenue that sums to fee income, then resets the tracker', () => {
     // Preload a loan about to close so revenue lands during the day.
-    const base = createStarterState();
+    const base = staffedStarter();
     const loan = base.loans[STARTER_LOAN_ID];
     if (!loan) throw new Error('missing loan');
     loan.stage = 'closing';

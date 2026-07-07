@@ -31,6 +31,7 @@
 - [x] M6 — Employees (+ game renamed to Mortgage Tycoon; + simple lead generation per GDD §13 decision 8)
 - [x] M7 — Economy + Upgrades + End of Day (payroll charged, servicing, rate drift, XP/levels/badges, 25-upgrade tree, End-of-Day screen)
 - [x] M8 — World Map + Tutorial + polish (Meadowbrook map with scouting/branches, 7-step tutorial, generated audio, balance review)
+- [x] M9 — Solo Founder (playtest 2026-07-06 #3): new games start with no employees — manual play per role until hired (solo pace, waiting periods, per-document underwriting sign-off), IT unlocks at level 5 (fewer/faster mishaps), Compliance at 15 (level-20 audit), 14-step tutorial rewrite, `tests/helpers.ts` withClassicTeam for staffed tests
 
 **v1 COMPLETE (2026-07-06).** Post-v1 backlog (TDD §8): Reports screen, per-branch staffing, Share card export, seasonal events, Phaser evaluation, more archetypes, real recorded audio to replace the generated synth set (`scripts/generate-audio.mjs`).
 

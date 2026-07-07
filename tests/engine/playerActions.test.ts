@@ -3,6 +3,7 @@ import {
   CLOSING_FEE_RATE,
   CONTACT_HAPPINESS_BOOST,
   REQUIRED_DOCS_BY_PURPOSE,
+  STAGE_HOURS_REQUIRED,
   STAGE_ORDER,
   STARTING_COINS,
 } from '../../src/engine/constants';
@@ -15,6 +16,15 @@ function loanOf(state: GameState) {
   const loan = state.loans[STARTER_LOAN_ID];
   if (!loan) throw new Error('starter loan missing');
   return loan;
+}
+
+/** Solo loans don't auto-advance (M9), so tests place the stage directly. */
+function inDocumentCollection(state: GameState): GameState {
+  const loan = state.loans[STARTER_LOAN_ID];
+  if (!loan) throw new Error('starter loan missing');
+  loan.stage = 'documentCollection';
+  loan.progressHours = 0;
+  return state;
 }
 
 describe('requestDocument', () => {
@@ -34,12 +44,12 @@ describe('requestDocument', () => {
     expect(requestDocument(base, 'LN-nope', 'taxReturns')).toBe(base);
   });
 
-  it('requested documents arrive before unrequested ones', () => {
-    let s = createStarterState();
-    while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
+  it('a requested document arrives while unrequested ones sit (M9 solo)', () => {
+    let s = inDocumentCollection(createStarterState());
     s = requestDocument(s, STARTER_LOAN_ID, 'homeInspectionReport');
-    s = advanceHour(s);
+    s = advanceHour(s); // Sarah is prompt and trusting — next hour it lands
     expect(loanOf(s).documents.homeInspectionReport).toBe('collected');
+    expect(loanOf(s).documents.taxReturns).toBe('missing'); // never asked for
   });
 });
 
@@ -63,14 +73,19 @@ describe('contactCustomer', () => {
 });
 
 describe('moveLoanForward', () => {
-  it('advances a stage when requirements are met', () => {
-    const s = moveLoanForward(createStarterState(), STARTER_LOAN_ID);
-    expect(loanOf(s).stage).toBe('preQualification');
+  it('advances a stage once its waiting period is served (M9)', () => {
+    const base = createStarterState();
+    expect(moveLoanForward(base, STARTER_LOAN_ID)).toBe(base); // hours still owed
+
+    const ready = createStarterState();
+    const loan = ready.loans[STARTER_LOAN_ID];
+    if (!loan) throw new Error('missing loan');
+    loan.progressHours = STAGE_HOURS_REQUIRED.lead;
+    expect(loanOf(moveLoanForward(ready, STARTER_LOAN_ID)).stage).toBe('preQualification');
   });
 
   it('is blocked in Document Collection until every document is in', () => {
-    let s = createStarterState();
-    while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
+    const s = inDocumentCollection(createStarterState());
 
     const blocked = moveLoanForward(s, STARTER_LOAN_ID);
     expect(blocked).toBe(s); // unchanged reference — action refused
@@ -79,16 +94,25 @@ describe('moveLoanForward', () => {
     const loan = ready.loans[STARTER_LOAN_ID];
     if (!loan) throw new Error('missing loan');
     for (const key of REQUIRED_DOCS_BY_PURPOSE.purchase) loan.documents[key] = 'collected';
+    loan.progressHours = STAGE_HOURS_REQUIRED.documentCollection;
     expect(loanOf(moveLoanForward(ready, STARTER_LOAN_ID)).stage).toBe('processing');
   });
 
   it('drives a loan all the way to Complete and pays the fee', () => {
     let s = createStarterState();
     const loan = loanOf(s);
-    for (const key of REQUIRED_DOCS_BY_PURPOSE.purchase) loan.documents[key] = 'collected';
+    for (const key of REQUIRED_DOCS_BY_PURPOSE.purchase) {
+      loan.documents[key] = 'collected';
+      loan.docApprovals = { ...loan.docApprovals, [key]: true }; // underwriting sign-off (M9)
+    }
 
     const transitions = STAGE_ORDER.length - 1;
-    for (let i = 0; i < transitions; i++) s = moveLoanForward(s, STARTER_LOAN_ID);
+    for (let i = 0; i < transitions; i++) {
+      // the founder serves each stage's waiting period before the click (M9)
+      const current = s.loans[STARTER_LOAN_ID];
+      if (current) current.progressHours = STAGE_HOURS_REQUIRED[current.stage];
+      s = moveLoanForward(s, STARTER_LOAN_ID);
+    }
 
     expect(loanOf(s).stage).toBe('completed');
     expect(loanOf(s).statusTag).toBe('Closed');

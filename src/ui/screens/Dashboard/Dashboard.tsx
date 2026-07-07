@@ -66,6 +66,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu, onRe
           icon={<Users size={17} />}
           label="Employees"
           badge={employees.length}
+          tutorialId="nav-employees"
           onClick={() => {
             audioManager.playCue('menuNavigation');
             onNavigate('employees');

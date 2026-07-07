@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Scale, Smile, UserPlus, Users, Wallet } from 'lucide-react';
-import { FIRE_TEAM_HAPPINESS_COST, ROLE_DISPLAY_NAME, TRAINING_COST, WEEKDAYS } from '../../../engine/constants';
+import {
+  FIRE_TEAM_HAPPINESS_COST,
+  ROLE_DISPLAY_NAME,
+  ROLE_UNLOCK_LEVEL,
+  TRAINING_COST,
+  WEEKDAYS,
+} from '../../../engine/constants';
 import { generateCandidates } from '../../../engine/content/candidates';
 import { assignedLoanCount, fireBlockedReason, skillCap } from '../../../engine/employees';
 import type { HireCandidate } from '../../../engine/employees';
@@ -19,7 +25,7 @@ function Face({ spriteId, size = 38 }: { spriteId: number; size?: number }) {
   );
 }
 
-const ROLES: Role[] = ['loanOfficer', 'processor', 'underwriter', 'closer'];
+const ROLES: Role[] = ['loanOfficer', 'processor', 'underwriter', 'closer', 'it', 'compliance'];
 type Tab = 'all' | Role;
 
 const TAG_LABEL: Record<NonNullable<Employee['tag']>, string> = {
@@ -168,6 +174,7 @@ export function Employees({ onBack }: { onBack(): void }) {
       {hiring && (
         <HireModal
           coins={game.currencies.coins}
+          playerLevel={game.stats.level}
           onHire={(candidate) => {
             hireEmployee(candidate);
             setHiring(false);
@@ -179,9 +186,29 @@ export function Employees({ onBack }: { onBack(): void }) {
   );
 }
 
-function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick(): void }) {
+function TabButton({
+  label,
+  active,
+  disabled = false,
+  title,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  disabled?: boolean;
+  title?: string;
+  onClick(): void;
+}) {
   return (
-    <button type="button" role="tab" aria-selected={active} className={active ? styles.tabActive : styles.tab} onClick={onClick}>
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      className={active ? styles.tabActive : styles.tab}
+      disabled={disabled}
+      title={title}
+      onClick={onClick}
+    >
       {label}
     </button>
   );
@@ -201,10 +228,12 @@ function Meter({ label, value, tone }: { label: string; value: number; tone: 'sa
 
 function HireModal({
   coins,
+  playerLevel,
   onHire,
   onClose,
 }: {
   coins: number;
+  playerLevel: number;
   onHire(candidate: HireCandidate): void;
   onClose(): void;
 }) {
@@ -216,11 +245,25 @@ function HireModal({
     <div className={styles.overlay} onClick={onClose} role="presentation">
       <section className={styles.modal} role="dialog" aria-label="Hire a new teammate" onClick={(e) => e.stopPropagation()}>
         <h3>Hire a new teammate</h3>
-        <p className={styles.modalNote}>Hiring fee: $1,000 · they start fresh and happy.</p>
+        <p className={styles.modalNote}>
+          Hiring fee: $1,000 · they start fresh and happy. Each hire automates their part of the
+          journey — until then, that work is yours.
+        </p>
         <div className={styles.tabs} role="tablist">
-          {ROLES.map((r) => (
-            <TabButton key={r} label={ROLE_DISPLAY_NAME[r]} active={role === r} onClick={() => setRole(r)} />
-          ))}
+          {ROLES.map((r) => {
+            const unlockAt = ROLE_UNLOCK_LEVEL[r];
+            const locked = unlockAt !== undefined && playerLevel < unlockAt;
+            return (
+              <TabButton
+                key={r}
+                label={locked ? `${ROLE_DISPLAY_NAME[r]} 🔒 Lv ${unlockAt}` : ROLE_DISPLAY_NAME[r]}
+                active={role === r}
+                disabled={locked}
+                title={locked ? `${ROLE_DISPLAY_NAME[r]} unlocks at level ${unlockAt}` : undefined}
+                onClick={() => setRole(r)}
+              />
+            );
+          })}
         </div>
         <div className={styles.candidates}>
           {candidates.map((candidate) => (

@@ -11,6 +11,7 @@ import {
   TRUST_MAX,
 } from '../../../engine/constants';
 import { ALL_DOC_KEYS, missingDocs, nextStage } from '../../../engine/loans';
+import { moveBlockedReason } from '../../../engine/playerActions';
 import type { Customer, GameState, Loan } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
@@ -49,7 +50,7 @@ export function CustomerProfile({ customerId, onSelectCustomer, onBack }: Custom
   // nags the customer and costs a little happiness (GDD §4 action 1).
   const requestable = owed > 0;
   const next = loan ? nextStage(loan.stage) : null;
-  const moveBlocked = loan ? loan.stage === 'documentCollection' && owed > 0 : true;
+  const blocked = loan ? moveBlockedReason(game, loan.id) : 'No active loan.';
 
   const goTo = (offset: number) => {
     const target = customers[(index + offset + customers.length) % customers.length];
@@ -221,9 +222,9 @@ export function CustomerProfile({ customerId, onSelectCustomer, onBack }: Custom
           Request Documents
         </Button>
         <Button
-          disabled={!loan || !next || moveBlocked || loan.delayed}
+          disabled={!loan || !next || blocked !== null}
           onClick={() => loan && moveLoan(loan.id)}
-          title={loan && moveBlocked ? `Waiting on ${owed} more ${owed === 1 ? 'document' : 'documents'}` : undefined}
+          title={blocked ?? undefined}
         >
           Continue Processing{loan && next ? ` → ${STAGE_DISPLAY_NAME[next]}` : ''}
         </Button>

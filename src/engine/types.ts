@@ -18,7 +18,7 @@ export type LoanStage =
 export type LoanProduct = 'conventional' | 'fha' | 'va';
 export type LoanPurpose = 'purchase' | 'refinance';
 
-export type Role = 'loanOfficer' | 'processor' | 'underwriter' | 'closer';
+export type Role = 'loanOfficer' | 'processor' | 'underwriter' | 'closer' | 'it' | 'compliance';
 
 export type DocumentKey =
   | 'employmentVerification'
@@ -91,6 +91,8 @@ export interface Loan {
   delayed: boolean; // GDD §4 action 4 — set aside; no work happens, happiness decays daily
   /** Level-10 challenge: underwriting already bounced this loan once (it never bounces twice). */
   underwritingRedo?: boolean;
+  /** M9 — underwriting sign-off per document: the underwriter (or you, solo) approves each one. */
+  docApprovals?: Partial<Record<DocumentKey, boolean>>;
 }
 
 export interface Employee {
@@ -192,5 +194,7 @@ export interface GameState {
   memoryWall: MemoryEntry[];
   /** Pending mortgage quiz (every QUIZ_EVERY_LEVELS levels); optional — absent/null when none. */
   quiz?: { termKey: string; forLevel: number } | null;
+  /** M9 — the level-20 compliance audit only happens once per save. */
+  auditDone?: boolean;
   rngSeed: number;
 }

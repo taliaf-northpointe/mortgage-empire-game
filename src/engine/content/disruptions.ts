@@ -9,7 +9,10 @@ import {
   DISRUPTION_CHANCE_MAX,
   DISRUPTION_CHANCE_PER_LEVEL,
   DISRUPTION_START_DAY,
+  IT_DISRUPTION_CHANCE_FACTOR,
+  IT_DISRUPTION_HOURS_OFF,
 } from '../constants';
+import { hasRole } from '../employees';
 import { mulberry32 } from '../rng';
 import type { DisruptionKind, GameEvent, GameState } from '../types';
 
@@ -91,22 +94,36 @@ export function maybeSpawnDisruption(state: GameState): void {
   if (state.disruption) return;
   if (state.clock.day < DISRUPTION_START_DAY) return;
 
+  // M9 — in-house IT keeps the gremlins away: half the chance, quicker fixes,
+  // gentler morale hits. Without them, an outsourced tech takes their time.
+  const inHouseIt = hasRole(state, 'it');
+
   const rng = mulberry32((state.rngSeed ^ (state.clock.day * 74_207_281 + 13)) >>> 0);
-  const chance = Math.min(
-    DISRUPTION_CHANCE_MAX,
-    DISRUPTION_BASE_CHANCE + (state.stats.level - 1) * DISRUPTION_CHANCE_PER_LEVEL,
-  );
+  const chance =
+    Math.min(
+      DISRUPTION_CHANCE_MAX,
+      DISRUPTION_BASE_CHANCE + (state.stats.level - 1) * DISRUPTION_CHANCE_PER_LEVEL,
+    ) * (inHouseIt ? IT_DISRUPTION_CHANCE_FACTOR : 1);
   if (rng.next() >= chance) return;
 
   const def = DISRUPTIONS[rng.int(0, DISRUPTIONS.length - 1)];
   if (!def) return;
-  state.disruption = { kind: def.kind, hoursLeft: rng.int(def.hours[0], def.hours[1]) };
+  const baseHours = rng.int(def.hours[0], def.hours[1]);
+  state.disruption = {
+    kind: def.kind,
+    hoursLeft: inHouseIt ? Math.max(1, baseHours - IT_DISRUPTION_HOURS_OFF) : baseHours,
+  };
   if (def.kind === 'coffeeOut') {
+    const hit = inHouseIt ? Math.ceil(COFFEE_OUT_HAPPINESS_HIT / 2) : COFFEE_OUT_HAPPINESS_HIT;
     for (const employee of Object.values(state.employees)) {
-      employee.happiness = Math.max(0, employee.happiness - COFFEE_OUT_HAPPINESS_HIT);
+      employee.happiness = Math.max(0, employee.happiness - hit);
     }
   }
-  pushDisruptionEvent(state, def.title, def.detail);
+  pushDisruptionEvent(
+    state,
+    def.title,
+    `${def.detail} ${inHouseIt ? 'Your IT team is already on it.' : 'An outsourced tech has been called — that takes a while.'}`,
+  );
 }
 
 /** Tick the active disruption down one hour; clears it (with good news) at zero. */

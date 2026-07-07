@@ -82,7 +82,26 @@ export const ROLE_DISPLAY_NAME: Record<Role, string> = {
   processor: 'Processor',
   underwriter: 'Underwriter',
   closer: 'Closer',
+  it: 'IT Support',
+  compliance: 'Compliance Officer',
 };
+
+/*
+ * M9 — Solo founder (playtest 2026-07-06 #3): a new company starts with NO
+ * employees. You work every stage by hand; each hire automates their part
+ * (manual always stays available).
+ */
+/** The founder's own pace on unstaffed stages — you can do everything, slowly. */
+export const PLAYER_SOLO_SPEED = 0.5;
+/** Support roles unlock with your career (they own no pipeline stage). */
+export const ROLE_UNLOCK_LEVEL: Partial<Record<Role, number>> = { it: 5, compliance: 15 };
+/** With in-house IT, mishaps are rarer and end sooner (and morale suffers less). */
+export const IT_DISRUPTION_CHANCE_FACTOR = 0.5;
+export const IT_DISRUPTION_HOURS_OFF = 1;
+/** The level-20 compliance audit: pass with a Compliance Officer, pay without one. */
+export const AUDIT_LEVEL = 20;
+export const AUDIT_REPUTATION_PENALTY = 10;
+export const AUDIT_PASS_REPUTATION_BONUS = 3;
 
 /**
  * TDD §4c — work-hours a loan must accumulate to clear each stage (base values;
@@ -272,6 +291,8 @@ export const SALARY_RANGE_BY_ROLE: Record<Role, { min: number; max: number }> = 
   processor: { min: 3_600, max: 4_100 },
   underwriter: { min: 4_700, max: 5_400 },
   closer: { min: 4_200, max: 5_100 },
+  it: { min: 3_800, max: 4_600 },
+  compliance: { min: 5_000, max: 6_200 },
 };
 
 /** GDD §2/§4 (M6) — simple daily lead generation until M8 events */

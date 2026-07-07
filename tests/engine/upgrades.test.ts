@@ -11,9 +11,10 @@ import {
   totalPurchased,
 } from '../../src/engine/upgrades';
 import type { GameState } from '../../src/engine/types';
+import { withClassicTeam } from '../helpers';
 
 function atLevel(level: number): GameState {
-  const s = createStarterState();
+  const s = withClassicTeam(createStarterState());
   s.stats.level = level;
   s.currencies.coins = 100_000;
   return s;

@@ -389,6 +389,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap; /* Approve/Request buttons drop below on narrow phones */
   background: var(--color-cream);
   border: var(--border-soft);
   border-radius: var(--radius-md);

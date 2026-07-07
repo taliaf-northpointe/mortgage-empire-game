@@ -14,6 +14,8 @@ import {
   QUIZ_XP,
   REPUTATION_TRUST_FACTOR,
   REQUEST_NAG_HAPPINESS_COST,
+  STAGE_DISPLAY_NAME,
+  STAGE_HOURS_REQUIRED,
   TRUST_MAX,
   TUTORIAL_RESEARCH,
   TUTORIAL_XP,
@@ -22,7 +24,7 @@ import {
 import { checkLevelUp } from './economy';
 import { getEntry } from './content/glossary';
 import { tiersOwned } from './upgrades';
-import { missingDocs, requirementsMet } from './loans';
+import { missingDocs, unapprovedDocs } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
 import type { DocumentKey, GameEvent, GameState } from './types';
 
@@ -137,17 +139,66 @@ export function contactCustomer(state: GameState, loanId: string): GameState {
 }
 
 /**
- * "Continue Processing" / "Move to [next stage]" (GDD §4 action 2):
- * only when the stage's requirements are met.
+ * Why a loan can't be advanced by hand right now, or null when it can (M9).
+ * Manual moves respect the same waiting periods the team does — being the
+ * founder doesn't make underwriting decide faster.
+ */
+export function moveBlockedReason(state: GameState, loanId: string): string | null {
+  const loan = state.loans[loanId];
+  if (!loan || loan.stage === 'completed') return 'This one is already home.';
+  if (loan.delayed) return 'The loan is set aside — resume it first.';
+  if (loan.stage === 'documentCollection' && missingDocs(loan).length > 0) {
+    const owed = missingDocs(loan).length;
+    return `Waiting on ${owed} more ${owed === 1 ? 'document' : 'documents'}.`;
+  }
+  if (loan.stage === 'underwriting' && unapprovedDocs(loan).length > 0) {
+    const pending = unapprovedDocs(loan).length;
+    return `${pending} ${pending === 1 ? 'document needs' : 'documents need'} sign-off first.`;
+  }
+  if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage]) {
+    const left = Math.ceil(STAGE_HOURS_REQUIRED[loan.stage] - loan.progressHours);
+    return `Still in the works — about ${left}h of ${STAGE_DISPLAY_NAME[loan.stage]} to go.`;
+  }
+  return null;
+}
+
+/**
+ * "Continue Processing" / "Move to [next stage]" (GDD §4 action 2): only when
+ * the stage's requirements AND its waiting period are met (M9 — solo founders
+ * work every stage by hand, but the clock is the clock).
  */
 export function moveLoanForward(state: GameState, loanId: string): GameState {
-  const loan = state.loans[loanId];
-  if (!loan || loan.stage === 'completed' || loan.delayed || !requirementsMet(loan)) return state;
+  if (moveBlockedReason(state, loanId)) return state;
 
   const s = structuredClone(state);
   const l = s.loans[loanId];
   if (!l) return state;
   advanceLoanStage(s, l);
+  return s;
+}
+
+/**
+ * M9 — the underwriting sign-off, by hand: open a document, look it over,
+ * approve it. An underwriter does this automatically, one per worked hour.
+ */
+export function approveDocument(state: GameState, loanId: string, key: DocumentKey): GameState {
+  const loan = state.loans[loanId];
+  if (!loan || loan.stage !== 'underwriting' || loan.delayed) return state;
+  if (loan.documents[key] !== 'collected' || loan.docApprovals?.[key]) return state;
+
+  const s = structuredClone(state);
+  const l = s.loans[loanId];
+  if (!l) return state;
+  l.docApprovals = { ...l.docApprovals, [key]: true };
+  if (unapprovedDocs(l).length === 0) {
+    const customer = s.customers[l.customerId];
+    pushEvent(
+      s,
+      'loans',
+      'You finished the document review ✅',
+      `${customer ? customer.name : 'The'} file checks out page by page — the decision is close now.`,
+    );
+  }
   return s;
 }
 

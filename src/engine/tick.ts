@@ -15,6 +15,7 @@ import {
   HAPPINESS_MAX,
   HAPPY_CUSTOMER_MIN,
   OFFICE_MORALE_BONUS_PER_2_TIERS,
+  PLAYER_SOLO_SPEED,
   PROCESSING_APPRAISAL_HOURS,
   FORGETFUL_DOC_CHANCE,
   RAINMAKER_REVENUE,
@@ -61,7 +62,7 @@ import {
   leastLoadedEmployeeId,
   updateEmployeeTags,
 } from './employees';
-import { ALL_DOC_KEYS, missingDocs, nextStage, requirementsMet } from './loans';
+import { ALL_DOC_KEYS, missingDocs, nextStage, requirementsMet, unapprovedDocs } from './loans';
 import { mulberry32 } from './rng';
 import { refreshNeighborhoodAvailability } from './map';
 import { tiersOwned } from './upgrades';
@@ -221,6 +222,7 @@ export function maybeUnderwritingRedo(state: GameState, loan: Loan): boolean {
 
   loan.underwritingRedo = true;
   loan.documents[doc] = 'missing';
+  loan.docApprovals = {}; // the whole file gets re-reviewed on the second pass (M9)
   loan.stage = 'documentCollection';
   loan.progressHours = 0;
   loan.statusTag = missingDocsTag(loan);
@@ -276,7 +278,14 @@ function docArrivesBotched(state: GameState, loan: Loan, customer: Customer | un
   return rng.next() < chance;
 }
 
-/** Advance one loan by one working hour. Mutates the (already cloned) state. */
+/**
+ * Advance one loan by one working hour. Mutates the (already cloned) state.
+ *
+ * M9 (playtest 2026-07-06 #3): unstaffed stages are the FOUNDER'S job — hours
+ * still accrue (at your slower solo pace), but nothing advances or gets
+ * requested automatically; you click the buttons yourself. Hiring the owning
+ * role automates that part of the journey (manual always stays available).
+ */
 function workLoan(
   state: GameState,
   loan: Loan,
@@ -286,12 +295,13 @@ function workLoan(
 
   const owningRole = ROLE_BY_STAGE[loan.stage];
 
-  // TDD §4b — an employee of the owning role must have capacity.
+  // TDD §4b — assign an employee of the owning role when one exists.
   const assigned = loan.assignedEmployeeId ? state.employees[loan.assignedEmployeeId] : undefined;
   if (!assigned || assigned.role !== owningRole) {
     loan.assignedEmployeeId = findEmployeeIdForRole(state, owningRole);
   }
-  if (!loan.assignedEmployeeId) return; // stalled: nobody owns this stage yet
+  const worker = loan.assignedEmployeeId ? state.employees[loan.assignedEmployeeId] : undefined;
+  const staffed = worker !== undefined;
 
   // Document Collection (GDD §4, M5): the customer sends documents on a
   // trait-driven cadence — requested ones first and faster.
@@ -299,10 +309,23 @@ function workLoan(
     const missing = missingDocs(loan);
     if (missing.length > 0 && mishap.docsBlocked) return; // GDD §6 — the mail is stuck
     if (missing.length > 0) {
+      // M9 — a processor chases paperwork automatically; solo, YOU request it.
+      const unrequested = missing.filter((key) => loan.documents[key] === 'missing');
+      if (staffed && unrequested.length > 0) {
+        for (const key of unrequested) loan.documents[key] = 'requested';
+        const customer = state.customers[loan.customerId];
+        pushEvent(
+          state,
+          'customers',
+          `${worker.name} requested ${customer ? customer.name : 'the customer'}'s documents`,
+          `${unrequested.length} ${unrequested.length === 1 ? 'document' : 'documents'} requested — your processor is on it.`,
+        );
+      }
+      const requested = missingDocs(loan).filter((key) => loan.documents[key] === 'requested');
+      if (!staffed && requested.length === 0) return; // solo and nothing asked for — the file just sits
       loan.progressHours += 1; // hours spent waiting on documents
       const customer = state.customers[loan.customerId];
-      const requested = missing.filter((key) => loan.documents[key] === 'requested');
-      const nextDoc = requested[0] ?? missing[0];
+      const nextDoc = requested[0] ?? (staffed ? missing[0] : undefined);
       const cadence = docDeliveryCadence(customer, requested.length > 0);
       if (nextDoc && loan.progressHours % cadence === 0) {
         // Playtest 2026-07-06 #2: forgetful or miserable customers sometimes
@@ -332,16 +355,31 @@ function workLoan(
     }
   }
 
-  // TDD §4c — accumulate progress-hours toward the current stage, scaled by
-  // the assigned employee's effectiveness (skill helps; overwork hurts, GDD §5)
-  // and the Technology upgrade speed bonus (GDD §7).
-  const worker = state.employees[loan.assignedEmployeeId];
+  // M9 — an underwriter signs off one document per worked hour; solo, you
+  // review and approve each document yourself in the loan detail view.
+  if (loan.stage === 'underwriting' && staffed) {
+    const pending = unapprovedDocs(loan);
+    const next = pending[0];
+    if (next) {
+      loan.docApprovals = { ...loan.docApprovals, [next]: true };
+      if (pending.length === 1) {
+        pushEvent(
+          state,
+          'loans',
+          `${worker.name} finished the document review`,
+          'Every page checks out — the decision is close now.',
+        );
+      }
+    }
+  }
+
+  // TDD §4c — accumulate progress-hours: staffed stages move at the worker's
+  // effectiveness (skill/morale/level/workload, GDD §5) × Technology bonus;
+  // unstaffed stages move at the founder's own solo pace (M9).
   const techBoost = 1 + TECH_SPEED_BONUS_PER_TIER * tiersOwned(state, 'technology');
+  const rate = worker ? effectiveness(worker) * techBoost : PLAYER_SOLO_SPEED;
   const hoursBefore = loan.progressHours;
-  loan.progressHours =
-    Math.round(
-      (loan.progressHours + (worker ? effectiveness(worker) : 1) * techBoost * mishap.speedFactor) * 100,
-    ) / 100;
+  loan.progressHours = Math.round((loan.progressHours + rate * mishap.speedFactor) * 100) / 100;
 
   // Processing sub-steps (GDD §3 v2): Appraisal, then Title Review.
   if (
@@ -361,7 +399,9 @@ function workLoan(
 
   if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage] || !requirementsMet(loan)) return;
 
-  advanceLoanStage(state, loan);
+  // M9 — automation is the hire's gift: staffed stages advance themselves;
+  // solo, the ready loan waits for YOUR click.
+  if (staffed) advanceLoanStage(state, loan);
 }
 
 /** One working-hour tick. Returns a new state; the input is never mutated. */

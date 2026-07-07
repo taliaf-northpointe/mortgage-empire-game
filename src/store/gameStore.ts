@@ -19,6 +19,7 @@ import { completeTutorial } from '../engine/playerActions';
 import { officeStage, purchaseUpgrade } from '../engine/upgrades';
 import {
   answerQuiz,
+  approveDocument,
   contactCustomer,
   learnTerm,
   moveLoanForward,
@@ -52,6 +53,8 @@ interface GameStore {
   /** GDD §3 loan popover + GDD §4 customer actions */
   requestDocument(loanId: string, key: DocumentKey): void;
   requestAllDocuments(loanId: string): void;
+  /** M9 — sign off on a document during underwriting (manual mode). */
+  approveDocument(loanId: string, key: DocumentKey): void;
   contactCustomer(loanId: string): void;
   moveLoan(loanId: string): void;
   toggleDelay(loanId: string): void;
@@ -176,6 +179,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const customer = next.customers[next.loans[loanId]?.customerId ?? ''];
       if (customer) pushToast(`📨 Requested from ${customer.name} — requested papers arrive first.`);
     }
+  },
+
+  approveDocument(loanId, key) {
+    const { game } = get();
+    if (!game) return;
+    const next = approveDocument(game, loanId, key);
+    if (next !== game) set({ game: next });
   },
 
   contactCustomer(loanId) {

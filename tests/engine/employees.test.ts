@@ -25,6 +25,10 @@ import {
 } from '../../src/engine/employees';
 import { advanceHour } from '../../src/engine/tick';
 import type { GameState, Loan } from '../../src/engine/types';
+import { withClassicTeam } from '../helpers';
+
+// Staffed-behavior tests get the classic four back (M9: new games start solo).
+const staffedStarter = (seed?: number) => withClassicTeam(createStarterState(seed));
 
 /** Give the lone processor `count` extra active loans in Processing. */
 function withProcessingLoans(state: GameState, count: number): GameState {
@@ -45,15 +49,15 @@ function withProcessingLoans(state: GameState, count: number): GameState {
 
 describe('workload (GDD §5)', () => {
   it('derives workload from assigned active loans', () => {
-    const s = withProcessingLoans(createStarterState(), 2);
+    const s = withProcessingLoans(staffedStarter(),2);
     expect(s.employees['emp-processor-1']?.workload).toBe(
       Math.round((2 / MAX_LOANS_PER_EMPLOYEE) * 100),
     );
   });
 
   it('ACCEPTANCE: an overworked employee slows loans…', () => {
-    const relaxed = withProcessingLoans(createStarterState(), 1);
-    const swamped = withProcessingLoans(createStarterState(), 5);
+    const relaxed = withProcessingLoans(staffedStarter(),1);
+    const swamped = withProcessingLoans(staffedStarter(),5);
 
     const target = 'LN-2026-9000';
     const afterRelaxed = advanceHour(relaxed).loans[target]?.progressHours ?? 0;
@@ -64,7 +68,7 @@ describe('workload (GDD §5)', () => {
   });
 
   it('…and hiring (plus rebalancing) fixes it', () => {
-    let s = withProcessingLoans(createStarterState(), 5);
+    let s = withProcessingLoans(staffedStarter(),5);
     expect(s.employees['emp-processor-1']?.workload).toBe(100);
 
     s = hireEmployee(s, { name: 'Avery Brooks', gender: 'f', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 2 });
@@ -85,7 +89,7 @@ describe('workload (GDD §5)', () => {
 
 describe('assignment', () => {
   it('new stages go to the least-loaded employee of the owning role', () => {
-    let s = withProcessingLoans(createStarterState(), 3);
+    let s = withProcessingLoans(staffedStarter(),3);
     s = hireEmployee(s, { name: 'Rowan Kim', gender: 'm', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 5 });
     const newbie = Object.values(s.employees).find((e) => e.name === 'Rowan Kim');
     expect(newbie).toBeDefined();
@@ -95,13 +99,13 @@ describe('assignment', () => {
 
 describe('Train / Promote / Hire (GDD §5)', () => {
   it('training costs coins and raises skill toward the cap', () => {
-    const s = trainEmployee(createStarterState(), 'emp-processor-1');
+    const s = trainEmployee(staffedStarter(), 'emp-processor-1');
     expect(s.currencies.coins).toBe(STARTING_COINS - TRAINING_COST);
     expect(s.employees['emp-processor-1']?.skill).toBe(2.25);
   });
 
   it('training refuses beyond the level cap; promotion raises the cap and salary', () => {
-    let s = createStarterState();
+    let s = staffedStarter();
     const employee = s.employees['emp-processor-1'];
     if (!employee) throw new Error('missing employee');
     employee.skill = skillCap(employee); // 3.5 at level 1
@@ -133,8 +137,8 @@ describe('Train / Promote / Hire (GDD §5)', () => {
   });
 
   it('portraits are gender-matched and unique while sprites remain (v8)', () => {
-    // starter women use sprites 3 (Dana) and 10 (Priya); the female pool is [3, 6, 9, 10, 13, 14, 16]
-    let s = createStarterState();
+    // classic-team women use sprites 3 (Dana) and 10 (Priya); the female pool is [3, 6, 9, 10, 13, 14, 16]
+    let s = staffedStarter();
     s = hireEmployee(s, { name: 'Avery Brooks', gender: 'f', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 3 });
     const avery = Object.values(s.employees).find((e) => e.name === 'Avery Brooks');
     expect(avery?.spriteId).not.toBe(3); // preferred sprite already taken by Dana
@@ -165,7 +169,7 @@ describe('Train / Promote / Hire (GDD §5)', () => {
 
 describe('effectiveness — never a static number (GDD §5 + playtest 2026-07-06 #2)', () => {
   it('skill, happiness, level, and workload all move the pace', () => {
-    const base = createStarterState().employees['emp-underwriter-1'];
+    const base = staffedStarter().employees['emp-underwriter-1'];
     if (!base) throw new Error('missing employee');
     const speed = (over: Partial<typeof base>) => effectiveness({ ...base, ...over });
 
@@ -185,27 +189,23 @@ describe('effectiveness — never a static number (GDD §5 + playtest 2026-07-06
   });
 });
 
-describe('letting employees go (playtest 2026-07-06 #2)', () => {
+describe('letting employees go (playtest 2026-07-06 #2 + M9)', () => {
   it('removes them, saves payroll, and shakes the whole team', () => {
-    const s = createStarterState();
+    const s = staffedStarter();
     const moraleBefore = Object.values(s.employees)
       .filter((e) => e.id !== 'emp-processor-1')
       .map((e) => e.happiness);
-    const next = fireEmployee(
-      hireEmployee(s, { name: 'Avery Brooks', gender: 'f', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 6 }),
-      'emp-processor-1',
-    );
+    const next = fireEmployee(s, 'emp-processor-1');
     expect(next.employees['emp-processor-1']).toBeUndefined();
-    const survivors = Object.values(next.employees).filter((e) => e.name !== 'Avery Brooks');
-    // hiring bumped nobody; firing cost everyone FIRE_TEAM_HAPPINESS_COST
-    survivors.forEach((e, i) => {
+    Object.values(next.employees).forEach((e, i) => {
       expect(e.happiness).toBe(Math.max(0, (moraleBefore[i] ?? 0) - FIRE_TEAM_HAPPINESS_COST));
     });
   });
 
-  it('refuses to fire the only person who can own a stage', () => {
-    const s = createStarterState();
-    expect(fireBlockedReason(s, 'emp-underwriter-1')).not.toBeNull();
-    expect(fireEmployee(s, 'emp-underwriter-1')).toBe(s); // same reference: refused
+  it('even the last owner of a stage can go — the founder takes over (M9)', () => {
+    const s = staffedStarter();
+    expect(fireBlockedReason(s, 'emp-underwriter-1')).toBeNull();
+    const next = fireEmployee(s, 'emp-underwriter-1');
+    expect(next.employees['emp-underwriter-1']).toBeUndefined();
   });
 });

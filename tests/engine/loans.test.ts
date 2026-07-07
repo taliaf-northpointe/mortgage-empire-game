@@ -41,9 +41,19 @@ describe('stage requirements (TDD §4a)', () => {
     expect(requirementsMet(loan)).toBe(true);
   });
 
-  it('other stages have no document requirement', () => {
+  it('Underwriting blocks until every required document is signed off (M9)', () => {
     const loan = starterLoan();
     loan.stage = 'underwriting';
+    expect(requirementsMet(loan)).toBe(false); // nothing approved yet
+    for (const key of REQUIRED_DOCS_BY_PURPOSE.purchase) {
+      loan.docApprovals = { ...loan.docApprovals, [key]: true };
+    }
+    expect(requirementsMet(loan)).toBe(true);
+  });
+
+  it('stages without checklists have no document requirement', () => {
+    const loan = starterLoan();
+    loan.stage = 'processing';
     expect(requirementsMet(loan)).toBe(true);
   });
 });

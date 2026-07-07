@@ -4,6 +4,9 @@
  * on already-cloned states inside the tick.
  */
 import {
+  AUDIT_LEVEL,
+  AUDIT_PASS_REPUTATION_BONUS,
+  AUDIT_REPUTATION_PENALTY,
   DEAL_STREAK_COUNT,
   GEMS_PER_BADGE,
   GEMS_PER_LEVEL_UP,
@@ -56,6 +59,31 @@ export function checkLevelUp(state: GameState): void {
       `🎉 You're now a ${titleForLevel(state.stats.level)}!`,
       `Level ${state.stats.level} reached. +${GEMS_PER_LEVEL_UP} gems — new doors are opening.`,
     );
+
+    // M9 — the level-20 compliance audit: with a Compliance Officer on staff
+    // you pass with flying colors; without one, the regulators notice.
+    if (state.stats.level === AUDIT_LEVEL && !state.auditDone) {
+      state.auditDone = true;
+      // (inlined rather than employees.hasRole — economy must not import employees)
+      const hasCompliance = Object.values(state.employees).some((e) => e.role === 'compliance');
+      if (hasCompliance) {
+        state.stats.reputation = Math.min(100, state.stats.reputation + AUDIT_PASS_REPUTATION_BONUS);
+        pushEvent(
+          state,
+          'alerts',
+          'Compliance audit: PASSED ✅',
+          `Your Compliance Officer had every file ready. +${AUDIT_PASS_REPUTATION_BONUS} reputation — regulators love you.`,
+        );
+      } else {
+        state.stats.reputation = Math.max(0, state.stats.reputation - AUDIT_REPUTATION_PENALTY);
+        pushEvent(
+          state,
+          'alerts',
+          'Compliance audit: FINDINGS 🚩',
+          `No compliance program on record. −${AUDIT_REPUTATION_PENALTY} reputation — a Compliance Officer would have passed this.`,
+        );
+      }
+    }
 
     // Every Nth level: a pop quiz on a mortgage term (playtest 2026-07-06).
     // One at a time; deterministic term per (seed, level).

@@ -257,14 +257,18 @@ export function hireEmployee(state: GameState, candidate: HireCandidate): GameSt
   return s;
 }
 
+/** Does anyone on the team hold this role? (M9 — solo founders often say no.) */
+export function hasRole(state: GameState, role: Role): boolean {
+  return Object.values(state.employees).some((e) => e.role === role);
+}
+
 /** Why an employee can't be let go right now, or null if they can. */
 export function fireBlockedReason(state: GameState, employeeId: string): string | null {
   const employee = state.employees[employeeId];
   if (!employee) return 'Nobody by that name works here.';
-  const sameRole = Object.values(state.employees).filter((e) => e.role === employee.role);
-  if (sameRole.length <= 1) {
-    return `Someone must own the ${ROLE_DISPLAY_NAME[employee.role]} stages — hire a replacement first.`;
-  }
+  // M9 — solo founders can run stages by hand, so anyone can be let go. Only
+  // guard against firing into an ACTIVE workload the player can't see coming:
+  // support roles (IT, compliance) own no stage and are always releasable.
   return null;
 }
 

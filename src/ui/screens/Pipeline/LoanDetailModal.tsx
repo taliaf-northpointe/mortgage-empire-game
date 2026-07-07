@@ -7,7 +7,8 @@ import {
   STAGE_DISPLAY_NAME,
 } from '../../../engine/constants';
 import { loanOutlook } from '../../../engine/insights';
-import { ALL_DOC_KEYS, missingDocs, nextStage } from '../../../engine/loans';
+import { ALL_DOC_KEYS, nextStage } from '../../../engine/loans';
+import { moveBlockedReason } from '../../../engine/playerActions';
 import type { Customer, DocStatus, Loan } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
@@ -39,7 +40,10 @@ function OutlookLine({ loan }: { loan: Loan }) {
       text = '⏸ Set aside — resume to keep things moving.';
       break;
     case 'unstaffed':
-      text = `⚠ Nobody owns ${STAGE_DISPLAY_NAME[loan.stage]} right now — hire or rebalance!`;
+      text =
+        loan.stage === 'documentCollection'
+          ? `🫵 Waiting on YOU — request the documents (a Processor would do this automatically).`
+          : `🫵 ${STAGE_DISPLAY_NAME[loan.stage]} is yours to work — hire the role to automate it.`;
       break;
     case 'documents':
       text = `🕐 Next document in ~${outlook.hours}h${withWho ? ` · ${withWho}` : ''}`;
@@ -65,11 +69,12 @@ export function LoanDetailModal({
   const requestDocument = useGameStore((s) => s.requestDocument);
   const contactCustomer = useGameStore((s) => s.contactCustomer);
   const moveLoan = useGameStore((s) => s.moveLoan);
+  const approveDocument = useGameStore((s) => s.approveDocument);
 
   const next = nextStage(loan.stage);
-  const owed = missingDocs(loan).length;
-  const moveBlocked = loan.stage === 'documentCollection' && owed > 0;
+  const blocked = game ? moveBlockedReason(game, loan.id) : null;
   const requiredDocs = ALL_DOC_KEYS.filter((key) => loan.documents[key] !== 'notRequired');
+  const underwriting = loan.stage === 'underwriting';
 
   return (
     <div className={styles.overlay} onClick={onClose} role="presentation">
@@ -122,9 +127,23 @@ export function LoanDetailModal({
                   <GlossaryTerm termKey={key}>{DOC_DISPLAY_NAME[key]}</GlossaryTerm>
                   <small>{DOC_FRIENDLY_SUBLABEL[key]}</small>
                 </span>
-                <span className={styles[`doc_${status}`]}>{DOC_STATUS_LABEL[status]}</span>
+                <span className={styles[`doc_${status}`]}>
+                  {underwriting && status === 'collected'
+                    ? loan.docApprovals?.[key]
+                      ? '✅ Approved'
+                      : 'Awaiting sign-off'
+                    : DOC_STATUS_LABEL[status]}
+                </span>
                 {status === 'missing' && (
                   <Button onClick={() => requestDocument(loan.id, key)}>Request</Button>
+                )}
+                {underwriting && status === 'collected' && !loan.docApprovals?.[key] && (
+                  <Button
+                    onClick={() => approveDocument(loan.id, key)}
+                    title="Review and sign off on this document (an Underwriter does this automatically)"
+                  >
+                    Approve
+                  </Button>
                 )}
               </li>
             );
@@ -134,14 +153,10 @@ export function LoanDetailModal({
         <footer className={styles.modalActions}>
           {loan.stage !== 'completed' && next ? (
             <>
-              <Button variant="primary" disabled={moveBlocked} onClick={() => moveLoan(loan.id)}>
-                Move to {STAGE_DISPLAY_NAME[next]}
+              <Button variant="primary" disabled={blocked !== null} onClick={() => moveLoan(loan.id)}>
+                {next === 'completed' ? 'Close the loan 🎉' : `Move to ${STAGE_DISPLAY_NAME[next]}`}
               </Button>
-              {moveBlocked && (
-                <span className={styles.blockedNote}>
-                  Waiting on {owed} more {owed === 1 ? 'document' : 'documents'}
-                </span>
-              )}
+              {blocked && <span className={styles.blockedNote}>{blocked}</span>}
             </>
           ) : (
             <span className={styles.doneNote}>All done — keys handed over! 🏠</span>

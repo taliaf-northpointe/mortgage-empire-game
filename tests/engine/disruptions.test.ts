@@ -4,10 +4,11 @@ import { maybeSpawnDisruption } from '../../src/engine/content/disruptions';
 import { createStarterState } from '../../src/engine/content/starter';
 import { advanceHour } from '../../src/engine/tick';
 import type { GameState } from '../../src/engine/types';
+import { withClassicTeam } from '../helpers';
 
 /** Starter state with the loan parked mid-Processing so progress is measurable. */
 function withProcessingLoan(): GameState {
-  const s = createStarterState();
+  const s = withClassicTeam(createStarterState());
   const loan = s.loans['LN-2026-0001'];
   if (!loan) throw new Error('starter loan missing');
   loan.stage = 'processing';
@@ -43,7 +44,7 @@ describe('office disruptions (GDD §6)', () => {
   });
 
   it('printer jam: documents stop arriving, other work continues', () => {
-    const s = createStarterState();
+    const s = withClassicTeam(createStarterState());
     const loan = s.loans['LN-2026-0001'];
     if (!loan) throw new Error('starter loan missing');
     loan.stage = 'documentCollection';

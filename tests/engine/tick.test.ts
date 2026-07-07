@@ -9,6 +9,10 @@ import {
 import { createStarterState, STARTER_LOAN_ID } from '../../src/engine/content/starter';
 import { advanceDay, advanceHour } from '../../src/engine/tick';
 import type { GameState } from '../../src/engine/types';
+import { withClassicTeam } from '../helpers';
+
+// These tests exercise STAFFED auto-advancement (M9: a bare starter is solo).
+const staffedStarter = (seed?: number) => withClassicTeam(createStarterState(seed));
 
 function loanOf(state: GameState) {
   const loan = state.loans[STARTER_LOAN_ID];
@@ -24,14 +28,14 @@ function runDays(state: GameState, days: number): GameState {
 
 describe('advanceHour', () => {
   it('is pure: the input state is not mutated', () => {
-    const before = createStarterState();
+    const before = staffedStarter();
     const snapshot = JSON.stringify(before);
     advanceHour(before);
     expect(JSON.stringify(before)).toBe(snapshot);
   });
 
   it('accumulates progress and moves lead → Pre-Qualification after enough hours', () => {
-    let s = createStarterState();
+    let s = staffedStarter();
     expect(loanOf(s).stage).toBe('lead');
     s = advanceHour(s);
     expect(loanOf(s).stage).toBe('lead');
@@ -40,8 +44,8 @@ describe('advanceHour', () => {
     expect(s.clock.hour).toBe(DAY_START_HOUR + 2);
   });
 
-  it('collects unprompted documents on the trait cadence (Sarah at trust 1: every 2 hours)', () => {
-    let s = createStarterState();
+  it('collects documents on the trait cadence (M9: the processor requests, prompt Sarah answers hourly)', () => {
+    let s = staffedStarter();
     const sarah = s.customers['cust-sarah-chen'];
     if (sarah) sarah.trust = 1; // pin trust so the pure trait cadence shows
     while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
@@ -49,12 +53,12 @@ describe('advanceHour', () => {
     s = advanceHour(s);
     s = advanceHour(s);
     const after = Object.values(loanOf(s).documents).filter((d) => d === 'collected').length;
-    expect(after).toBe(before + 1);
+    expect(after).toBe(before + 2);
     expect(loanOf(s).statusTag).toMatch(/Missing \d+ docs|Ready/);
   });
 
   it('runs the Processing sub-steps: Appraisal, then Title Review', () => {
-    let s = createStarterState();
+    let s = staffedStarter();
     while (loanOf(s).stage !== 'processing') s = advanceHour(s);
     expect(loanOf(s).statusTag).toBe('Appraisal ordered');
 
@@ -68,7 +72,7 @@ describe('advanceHour', () => {
   });
 
   it('stalls a stage that has no employee of the owning role', () => {
-    const base = createStarterState();
+    const base = staffedStarter();
     delete base.employees['emp-processor-1'];
     let s = base;
     for (let i = 0; i < TICKS_PER_DAY * 4; i++) s = advanceHour(s);
@@ -78,7 +82,7 @@ describe('advanceHour', () => {
 
 describe('advanceDay', () => {
   it('runs the full working day and rolls the calendar to 9 AM next day', () => {
-    const s = advanceDay(createStarterState());
+    const s = advanceDay(staffedStarter());
     expect(s.clock.day).toBe(2);
     expect(s.clock.hour).toBe(DAY_START_HOUR);
     expect(s.clock.weekday).toBe(2);
@@ -92,7 +96,7 @@ describe('advanceDay', () => {
 
 describe('acceptance: a loan travels the full v2 pipeline deterministically', () => {
   it('completes within a few days and pays the closing fee', () => {
-    let s = createStarterState();
+    let s = staffedStarter();
     let days = 0;
     while (loanOf(s).stage !== 'completed' && days < 10) {
       s = advanceDay(s);
@@ -120,8 +124,8 @@ describe('acceptance: a loan travels the full v2 pipeline deterministically', ()
   });
 
   it('two runs from the same starting state end in identical states', () => {
-    const runA = runDays(createStarterState(), 6);
-    const runB = runDays(createStarterState(), 6);
+    const runA = runDays(staffedStarter(), 6);
+    const runB = runDays(staffedStarter(), 6);
     expect(JSON.stringify(runA)).toBe(JSON.stringify(runB));
   });
 });
