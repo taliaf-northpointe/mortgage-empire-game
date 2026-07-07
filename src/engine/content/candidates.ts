@@ -42,7 +42,7 @@ export function generateCandidates(seed: number, role: Role): HireCandidate[] {
 
     const gender = genderForName(name);
     const pool = spritesForGender(gender);
-    const spriteId = pool[rng.int(0, pool.length - 1)] ?? 1;
+    const spriteId = pool[rng.int(0, pool.length - 1)] ?? 3;
 
     const skill = Math.round((1.5 + rng.next() * 2.5) * 4) / 4; // 1.5–4.0 in quarter steps
     const skillShare = (skill - 1.5) / 2.5;

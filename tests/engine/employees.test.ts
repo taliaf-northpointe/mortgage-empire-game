@@ -130,12 +130,12 @@ describe('Train / Promote / Hire (GDD §5)', () => {
   });
 
   it('portraits are gender-matched and unique while sprites remain (v8)', () => {
-    // starter women use sprites 3 (Dana) and 8 (Priya); the female pool is [2, 3, 6, 8]
+    // starter women use sprites 3 (Dana) and 10 (Priya); the female pool is [3, 6, 9, 10, 13, 14, 16]
     let s = createStarterState();
     s = hireEmployee(s, { name: 'Avery Brooks', gender: 'f', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 3 });
     const avery = Object.values(s.employees).find((e) => e.name === 'Avery Brooks');
     expect(avery?.spriteId).not.toBe(3); // preferred sprite already taken by Dana
-    expect([2, 6]).toContain(avery?.spriteId);
+    expect([6, 9, 13, 14, 16]).toContain(avery?.spriteId);
 
     s = hireEmployee(s, { name: 'Harper Osei', gender: 'f', role: 'closer', skill: 3, salaryMonthly: 4_500, spriteId: avery?.spriteId ?? 2 });
     const harper = Object.values(s.employees).find((e) => e.name === 'Harper Osei');

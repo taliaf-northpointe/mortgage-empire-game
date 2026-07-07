@@ -18,7 +18,7 @@ export const STARTER_CUSTOMER_ID = 'cust-sarah-chen';
 export function createStarterState(rngSeed = 42): GameState {
   return {
     meta: {
-      saveVersion: 9,
+      saveVersion: 10,
       playerName: 'You',
       officeName: 'Old Town Office',
       // Fixed for determinism; the real New Game flow (M2) stamps the actual date.
@@ -79,7 +79,7 @@ export function createStarterState(rngSeed = 42): GameState {
         id: 'emp-loan-officer-1',
         name: 'Marcus Webb',
         role: 'loanOfficer',
-        spriteId: 1,
+        spriteId: 11,
         level: 1,
         skill: 3,
         happiness: 85,
@@ -103,7 +103,7 @@ export function createStarterState(rngSeed = 42): GameState {
         id: 'emp-underwriter-1',
         name: 'Priya Nair',
         role: 'underwriter',
-        spriteId: 8,
+        spriteId: 10,
         level: 1,
         skill: 3,
         happiness: 80,

@@ -4,10 +4,10 @@
  * FROM; each migration returns data at saveVersion + 1.
  */
 
-import { genderForName, spritesForGender } from '../engine/content/characterSprites';
+import { genderForName, RETIRED_SPRITES, spritesForGender } from '../engine/content/characterSprites';
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 9;
+export const CURRENT_SAVE_VERSION = 10;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -207,6 +207,44 @@ function migrateV8toV9(data: Record<string, unknown>): Record<string, unknown> {
   return next;
 }
 
+/**
+ * v9 → v10 (bigger office cast): sprites 1, 2, and 8 retired. Anyone wearing
+ * a retired face gets a new gender-matched one, still least-used-first so the
+ * team stays distinct.
+ */
+function migrateV9toV10(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+  const employees = (next['employees'] ?? {}) as Record<string, Record<string, unknown>>;
+  const usage = new Map<number, number>();
+  for (const employee of Object.values(employees)) {
+    const spriteId = employee?.['spriteId'];
+    if (typeof spriteId === 'number' && !RETIRED_SPRITES.has(spriteId)) {
+      usage.set(spriteId, (usage.get(spriteId) ?? 0) + 1);
+    }
+  }
+  for (const id of Object.keys(employees).sort()) {
+    const employee = employees[id];
+    const spriteId = employee?.['spriteId'];
+    if (!employee || typeof spriteId !== 'number' || !RETIRED_SPRITES.has(spriteId)) continue;
+    const pool = spritesForGender(genderForName(String(employee['name'] ?? '')));
+    let best = pool[0] ?? 3;
+    let bestCount = Number.POSITIVE_INFINITY;
+    for (const candidate of pool) {
+      const count = usage.get(candidate) ?? 0;
+      if (count < bestCount) {
+        best = candidate;
+        bestCount = count;
+      }
+    }
+    employee['spriteId'] = best;
+    usage.set(best, (usage.get(best) ?? 0) + 1);
+  }
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 10;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
@@ -216,6 +254,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   6: migrateV6toV7,
   7: migrateV7toV8,
   8: migrateV8toV9,
+  9: migrateV9toV10,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

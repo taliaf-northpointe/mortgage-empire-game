@@ -160,9 +160,11 @@ if (existsSync(join(ROOT, 'Desk.png'))) {
   save('desk.png', resize(trim(stripBackground(load('Desk.png'), 46)), 460));
 }
 
-for (let n = 1; n <= 8; n++) {
+// 1, 2, and 8 are retired from the office cast (Talia's call, 2026-07-06)
+const RETIRED_CHARACTERS = new Set([1, 2, 8]);
+for (let n = 1; n <= 30; n++) {
   const src = `Character ${n}.png`;
-  if (!existsSync(join(ROOT, src))) continue;
+  if (RETIRED_CHARACTERS.has(n) || !existsSync(join(ROOT, src))) continue;
   save(`char-${n}.png`, resize(trim(cropDeskRows(stripBackground(load(src), 34))), 300));
 }
 

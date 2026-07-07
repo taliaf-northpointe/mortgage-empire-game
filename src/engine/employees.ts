@@ -197,7 +197,7 @@ export function pickSpriteId(state: GameState, gender: SpriteGender, preferred?:
     if (usage.has(employee.spriteId)) usage.set(employee.spriteId, (usage.get(employee.spriteId) ?? 0) + 1);
   }
   if (preferred !== undefined && usage.get(preferred) === 0) return preferred;
-  let best = pool[0] ?? 1;
+  let best = pool[0] ?? 3;
   let bestCount = Number.POSITIVE_INFINITY;
   for (const id of pool) {
     const count = usage.get(id) ?? 0;
