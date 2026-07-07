@@ -94,7 +94,7 @@ export const STAGE_HOURS_REQUIRED: Record<LoanStage, number> = {
   application: 3,
   documentCollection: 2, // plus one hour per document the customer still owes (see tick.ts)
   processing: 6, // includes the Appraisal (first half) and Title Review (second half) sub-steps
-  underwriting: 4,
+  underwriting: 8, // the decisive review deserves a real waiting period (playtest 2026-07-06)
   clearToClose: 3,
   closing: 4,
   completed: 0,
@@ -273,9 +273,41 @@ export const XP_PER_BADGE = 100;
 export const GEMS_FIVE_STAR_DAY = 1;
 export const RESEARCH_FIRST_PRODUCT = 5; // first Conventional/FHA/VA completion each
 
-/** GDD §10 — XP needed to REACH each level (index = level); titles in LEVEL_TITLES */
-export const LEVEL_XP_THRESHOLDS: readonly number[] = [0, 0, 200, 500, 900, 1_500, 2_500];
-export const MAX_PLAYER_LEVEL = 6;
+/**
+ * GDD §10 — XP needed to REACH each level (index = level); titles in LEVEL_TITLES.
+ * The ladder extends past the six named titles (playtest 2026-07-06: quizzes
+ * every 5 levels, new challenges at 10 and 20): after level 6 each level costs
+ * 1,000 XP more than the last, growing by 200 per step.
+ */
+export const MAX_PLAYER_LEVEL = 30;
+export const LEVEL_XP_THRESHOLDS: readonly number[] = (() => {
+  const thresholds = [0, 0, 200, 500, 900, 1_500, 2_500];
+  for (let level = 7; level <= MAX_PLAYER_LEVEL; level++) {
+    thresholds[level] = (thresholds[level - 1] ?? 0) + 1_000 + (level - 7) * 200;
+  }
+  return thresholds;
+})();
+
+/* ── Knowledge rewards & escalating challenges (playtest 2026-07-06) ── */
+
+/** Reading a Learning Center term for the first time pays a little XP. */
+export const XP_PER_TERM_LEARNED = 10;
+/** Every Nth level triggers a multiple-choice mortgage quiz. */
+export const QUIZ_EVERY_LEVELS = 5;
+export const QUIZ_XP = 150;
+export const QUIZ_OPTION_COUNT = 4;
+/** Leads scale with your career: extra daily lead chance per level past 1. */
+export const LEAD_CHANCE_PER_LEVEL = 0.03;
+/** Extra active-loan headroom per 2 player levels (volume grows with skill). */
+export const LOAN_CAP_PER_2_LEVELS = 1;
+/** From this level, underwriting may bounce a loan back once for a missing document. */
+export const REDO_CHALLENGE_LEVEL = 10;
+export const UNDERWRITING_REDO_CHANCE = 0.25;
+export const REDO_HAPPINESS_COST = 5;
+/** From this level, a thoroughly unhappy customer will walk away. */
+export const WALKAWAY_CHALLENGE_LEVEL = 20;
+export const WALKAWAY_HAPPINESS = 15;
+export const WALKAWAY_REPUTATION_COST = 2;
 
 /** GDD §10 — achievement triggers */
 export const RAINMAKER_REVENUE = 50_000; // in one day

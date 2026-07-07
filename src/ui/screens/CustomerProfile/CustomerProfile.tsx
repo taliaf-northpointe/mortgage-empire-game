@@ -304,10 +304,11 @@ function DrawnPortrait({ customer }: { customer: Customer }) {
   );
 }
 
-/** The matching dream-home illustration (House N ↔ Borrower N). */
+/** Their dream-home illustration (repeat leads are paired with fresh houses). */
 function HomeArt({ customer }: { customer: Customer }) {
-  if (customer.portraitId) {
-    return <img className={styles.homeArtPhoto} src={houseArtUrl(customer.portraitId)} alt="" />;
+  const houseId = customer.houseId ?? customer.portraitId;
+  if (houseId) {
+    return <img className={styles.homeArtPhoto} src={houseArtUrl(houseId)} alt="" />;
   }
   return <DrawnHomeArt seed={customer.portraitSeed} />;
 }

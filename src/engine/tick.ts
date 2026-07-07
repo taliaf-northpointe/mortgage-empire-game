@@ -17,6 +17,8 @@ import {
   OFFICE_MORALE_BONUS_PER_2_TIERS,
   PROCESSING_APPRAISAL_HOURS,
   RAINMAKER_REVENUE,
+  REDO_CHALLENGE_LEVEL,
+  REDO_HAPPINESS_COST,
   REPUTATION_PER_COMPLETION,
   REQUESTED_DOC_HOURS,
   REQUESTED_DOC_HOURS_PROMPT,
@@ -29,8 +31,12 @@ import {
   STAR_RATING_BASE,
   SYSTEM_UPDATE_SPEED_FACTOR,
   TECH_SPEED_BONUS_PER_TIER,
+  UNDERWRITING_REDO_CHANCE,
   UNPROMPTED_DOC_HOURS,
   UNPROMPTED_DOC_HOURS_EAGER,
+  WALKAWAY_CHALLENGE_LEVEL,
+  WALKAWAY_HAPPINESS,
+  WALKAWAY_REPUTATION_COST,
   XP_PER_COMPLETED_LOAN,
 } from './constants';
 import { maybeSpawnDisruption, tickDisruption } from './content/disruptions';
@@ -51,7 +57,8 @@ import {
   leastLoadedEmployeeId,
   updateEmployeeTags,
 } from './employees';
-import { missingDocs, nextStage, requirementsMet } from './loans';
+import { ALL_DOC_KEYS, missingDocs, nextStage, requirementsMet } from './loans';
+import { mulberry32 } from './rng';
 import { refreshNeighborhoodAvailability } from './map';
 import { tiersOwned } from './upgrades';
 import type { Customer, DaySummary, GameEvent, GameState, Loan, Role } from './types';
@@ -80,6 +87,10 @@ export function missingDocsTag(loan: Loan): string | null {
 export function advanceLoanStage(state: GameState, loan: Loan): void {
   const to = nextStage(loan.stage);
   if (!to) return;
+
+  // Level-10 challenge (playtest 2026-07-06): underwriting can bounce a loan
+  // back ONCE — a document needs to be resubmitted and re-verified.
+  if (loan.stage === 'underwriting' && maybeUnderwritingRedo(state, loan)) return;
 
   const from = loan.stage;
   loan.stage = to;
@@ -180,6 +191,48 @@ export function advanceLoanStage(state: GameState, loan: Loan): void {
     `${customerName} is on to the next step`,
     `Now in ${STAGE_DISPLAY_NAME[to]}.`,
   );
+}
+
+function hashString(value: string): number {
+  let n = 0;
+  for (const ch of value) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
+  return n;
+}
+
+/**
+ * Level-10 challenge: leaving underwriting, some loans get a "yes, but…" —
+ * one verified document must be resubmitted, sending the loan back through
+ * Document Collection and Processing. Never happens twice to the same loan;
+ * deterministic per (seed, loan, day). Returns true if the loan was bounced.
+ */
+export function maybeUnderwritingRedo(state: GameState, loan: Loan): boolean {
+  if (state.stats.level < REDO_CHALLENGE_LEVEL || loan.underwritingRedo) return false;
+
+  const rng = mulberry32((state.rngSeed ^ hashString(loan.id) ^ (state.clock.day * 8_191)) >>> 0);
+  if (rng.next() >= UNDERWRITING_REDO_CHANCE) return false;
+
+  const collected = ALL_DOC_KEYS.filter((key) => loan.documents[key] === 'collected');
+  const doc = collected[rng.int(0, Math.max(0, collected.length - 1))];
+  if (!doc) return false;
+
+  loan.underwritingRedo = true;
+  loan.documents[doc] = 'missing';
+  loan.stage = 'documentCollection';
+  loan.progressHours = 0;
+  loan.statusTag = missingDocsTag(loan);
+  loan.assignedEmployeeId = findEmployeeIdForRole(state, ROLE_BY_STAGE['documentCollection']);
+
+  const customer = state.customers[loan.customerId];
+  if (customer) {
+    customer.happiness = Math.max(0, customer.happiness - REDO_HAPPINESS_COST);
+  }
+  pushEvent(
+    state,
+    'alerts',
+    `Underwriting needs one more look 📋`,
+    `${customer ? customer.name : 'A customer'}'s ${DOC_DISPLAY_NAME[doc]} expired and must be resubmitted — back through the process it goes.`,
+  );
+  return true;
 }
 
 /**
@@ -394,6 +447,25 @@ export function advanceDay(state: GameState): GameState {
   const officeBonus =
     Math.floor(tiersOwned(s, 'office') / 2) * OFFICE_MORALE_BONUS_PER_2_TIERS;
   applyDailyMorale(s, officeBonus);
+
+  // Level-20 challenge (playtest 2026-07-06): a thoroughly unhappy customer
+  // took their business elsewhere overnight — the news lands in the morning feed.
+  if (s.stats.level >= WALKAWAY_CHALLENGE_LEVEL) {
+    for (const loan of Object.values(s.loans)) {
+      if (loan.stage === 'completed') continue;
+      const customer = s.customers[loan.customerId];
+      if (!customer || customer.happiness > WALKAWAY_HAPPINESS) continue;
+      delete s.loans[loan.id];
+      delete s.customers[customer.id];
+      s.stats.reputation = Math.max(0, s.stats.reputation - WALKAWAY_REPUTATION_COST);
+      pushEvent(
+        s,
+        'alerts',
+        `💔 ${customer.name} walked away`,
+        `They found another lender who kept them smiling. −${WALKAWAY_REPUTATION_COST} reputation — check in with unhappy customers before it gets this far.`,
+      );
+    }
+  }
 
   // GDD §2 — more customers arrive (seeded, capped; GDD §13 decision 8).
   maybeSpawnLead(s);

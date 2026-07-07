@@ -11,12 +11,15 @@ import {
   CX_TRUST_BONUS_PER_TIER,
   DOC_DISPLAY_NAME,
   HAPPINESS_MAX,
+  QUIZ_XP,
   REQUEST_NAG_HAPPINESS_COST,
   TRUST_MAX,
   TUTORIAL_RESEARCH,
   TUTORIAL_XP,
+  XP_PER_TERM_LEARNED,
 } from './constants';
 import { checkLevelUp } from './economy';
+import { getEntry } from './content/glossary';
 import { tiersOwned } from './upgrades';
 import { missingDocs, requirementsMet } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
@@ -177,6 +180,44 @@ export function completeTutorial(state: GameState, skipped: boolean): GameState 
       `You know the ropes — +${TUTORIAL_XP} XP and +${TUTORIAL_RESEARCH} research to start strong.`,
     );
     checkLevelUp(s);
+  }
+  return s;
+}
+
+/**
+ * Learn a glossary term (GDD §4.1 progressive learning). First read pays a
+ * little XP (playtest 2026-07-06: knowledge should reward the career too).
+ */
+export function learnTerm(state: GameState, key: string): GameState {
+  if (state.glossary[key]?.learned || !getEntry(key)) return state;
+
+  const s = structuredClone(state);
+  s.glossary[key] = { unlocked: true, learned: true, learnedOnDay: s.clock.day };
+  s.stats.xp += XP_PER_TERM_LEARNED;
+  checkLevelUp(s);
+  return s;
+}
+
+/**
+ * Answer the pending mortgage quiz (every QUIZ_EVERY_LEVELS levels). A correct
+ * pick pays QUIZ_XP; either way the quiz is resolved and the term is learned —
+ * getting one wrong is still a lesson.
+ */
+export function answerQuiz(state: GameState, chosenTermKey: string): GameState {
+  const quiz = state.quiz;
+  if (!quiz) return state;
+
+  const s = structuredClone(state);
+  const correct = chosenTermKey === quiz.termKey;
+  const term = getEntry(quiz.termKey)?.term ?? quiz.termKey;
+  s.quiz = null;
+  s.glossary[quiz.termKey] = { unlocked: true, learned: true, learnedOnDay: s.clock.day };
+  if (correct) {
+    s.stats.xp += QUIZ_XP;
+    pushEvent(s, 'alerts', 'Quiz aced! 🎓', `You know your ${term}. +${QUIZ_XP} XP.`);
+    checkLevelUp(s);
+  } else {
+    pushEvent(s, 'alerts', 'Quiz missed — no harm done', `${term} is waiting in the Learning Center for a refresher.`);
   }
   return s;
 }

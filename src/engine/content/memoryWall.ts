@@ -66,6 +66,7 @@ export function buildMemoryEntry(state: GameState, loan: Loan, customer: Custome
     amount: loan.amount,
     closingDay: state.clock.day,
     season: state.clock.season,
+    houseId: customer.houseId ?? customer.portraitId ?? null,
     note: thankYouNote(customer),
   };
 }

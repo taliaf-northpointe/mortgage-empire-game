@@ -13,11 +13,14 @@ import {
   LEVEL_XP_THRESHOLDS,
   MAX_PLAYER_LEVEL,
   PAYROLL_DAYS_PER_MONTH,
+  QUIZ_EVERY_LEVELS,
+  QUIZ_XP,
   SERVICING_INTERVAL_DAYS,
   titleForLevel,
   XP_PER_BADGE,
 } from './constants';
 import { ACHIEVEMENTS_BY_ID } from './content/achievements';
+import { ALL_TERM_KEYS } from './content/glossary';
 import { mulberry32 } from './rng';
 import type { GameEvent, GameState } from './types';
 
@@ -53,6 +56,22 @@ export function checkLevelUp(state: GameState): void {
       `🎉 You're now a ${titleForLevel(state.stats.level)}!`,
       `Level ${state.stats.level} reached. +${GEMS_PER_LEVEL_UP} gems — new doors are opening.`,
     );
+
+    // Every Nth level: a pop quiz on a mortgage term (playtest 2026-07-06).
+    // One at a time; deterministic term per (seed, level).
+    if (state.stats.level % QUIZ_EVERY_LEVELS === 0 && !state.quiz) {
+      const rng = mulberry32((state.rngSeed ^ (state.stats.level * 97_911)) >>> 0);
+      const termKey = ALL_TERM_KEYS[rng.int(0, ALL_TERM_KEYS.length - 1)];
+      if (termKey) {
+        state.quiz = { termKey, forLevel: state.stats.level };
+        pushEvent(
+          state,
+          'alerts',
+          'Pop quiz! 🎓',
+          `Prove your mortgage chops — answer correctly for +${QUIZ_XP} XP.`,
+        );
+      }
+    }
   }
 }
 

@@ -69,7 +69,7 @@ function MemoryCard({ page, tilt }: { page: MemoryEntry; tilt: number }) {
         {page.portraitId ? (
           <>
             {/* the whole house, never cropped — the family stands in front of it */}
-            <img className={styles.housePhoto} src={houseArtUrl(page.portraitId)} alt="" />
+            <img className={styles.housePhoto} src={houseArtUrl(page.houseId ?? page.portraitId)} alt="" />
             <img className={styles.familyPhoto} src={borrowerArtUrl(page.portraitId)} alt="" />
           </>
         ) : (

@@ -57,6 +57,8 @@ export interface Customer {
   portraitVariant?: number;
   /** One-line persona ("about them") shown on the Customer Profile. */
   about?: string;
+  /** Which house illustration is theirs (house-N.png); repeats get fresh pairings. Falls back to portraitId. */
+  houseId?: number;
   dreamHome: {
     name: string;
     neighborhoodId: string;
@@ -84,6 +86,8 @@ export interface Loan {
   termYears: 15 | 30;
   progressHours: number; // hours accumulated toward the current stage (TDD §4c)
   delayed: boolean; // GDD §4 action 4 — set aside; no work happens, happiness decays daily
+  /** Level-10 challenge: underwriting already bounced this loan once (it never bounces twice). */
+  underwritingRedo?: boolean;
 }
 
 export interface Employee {
@@ -115,6 +119,8 @@ export interface MemoryEntry {
   amount: number;
   closingDay: number | null; // null for memories backfilled from older saves
   season: Season | null;
+  /** Their house illustration; older entries fall back to portraitId. */
+  houseId?: number | null;
   note: string; // their thank-you note
 }
 
@@ -181,5 +187,7 @@ export interface GameState {
   disruption?: { kind: DisruptionKind; hoursLeft: number } | null;
   /** The Wall of Homes (v11) — every family helped, in closing order. */
   memoryWall: MemoryEntry[];
+  /** Pending mortgage quiz (every QUIZ_EVERY_LEVELS levels); optional — absent/null when none. */
+  quiz?: { termKey: string; forLevel: number } | null;
   rngSeed: number;
 }

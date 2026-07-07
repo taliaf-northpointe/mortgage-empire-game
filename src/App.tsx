@@ -14,6 +14,7 @@ import { LearningCenter } from './ui/screens/LearningCenter/LearningCenter';
 import { MemoryWall } from './ui/screens/MemoryWall/MemoryWall';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
+import { QuizModal } from './ui/components/QuizModal';
 import { Toasts } from './ui/components/Toasts';
 
 /** One id per designed screen (GDD §11). Screens arrive milestone by milestone. */
@@ -140,9 +141,13 @@ export function App() {
     );
   })();
 
+  const quizPending =
+    hasGame && screen !== 'mainMenu' && !showEndOfDay && !tutorialActive && game?.quiz;
+
   return (
     <>
       {content}
+      {quizPending && <QuizModal />}
       <Toasts />
     </>
   );

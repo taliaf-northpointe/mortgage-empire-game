@@ -1,0 +1,57 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+  z-index: 80; /* above screens and toasts, below nothing else */
+  padding: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--color-paper);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 26px 30px;
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-paper);
+  background: var(--color-lavender);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  width: fit-content;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  text-align: left;
+  white-space: normal;
+  line-height: 1.45;
+  padding: 12px 14px;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+  text-align: center;
+}

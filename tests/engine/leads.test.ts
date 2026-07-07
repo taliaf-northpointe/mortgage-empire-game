@@ -67,6 +67,7 @@ describe('lead generation (GDD §13 decision 8)', () => {
       expect(c.portraitId).toBeGreaterThanOrEqual(2);
       expect(c.portraitId).toBeLessThanOrEqual(17);
       expect(c.about).toBeTruthy();
+      expect(c.houseId).toBeGreaterThanOrEqual(1);
       (seen[c.portraitId ?? 0] ??= []).push(c.name);
     }
 
@@ -75,9 +76,20 @@ describe('lead generation (GDD §13 decision 8)', () => {
     expect(Object.keys(seen)).toHaveLength(16); // all 16 personas walked in
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
 
-    // any reused portrait must arrive with a brand-new name (variant persona)
-    for (const names of Object.values(seen)) {
-      expect(new Set(names).size).toBe(names.length);
+    // names and abouts NEVER repeat across the whole save (only Sarah is fixed)
+    const allNames = spawned.map((c) => c.name);
+    expect(new Set(allNames).size).toBe(allNames.length);
+    const allAbouts = spawned.map((c) => c.about);
+    expect(new Set(allAbouts).size).toBe(allAbouts.length);
+
+    // a repeated portrait is paired with a house it hasn't lived in before
+    for (const portraitId of Object.keys(seen).map(Number)) {
+      const houses = spawned.filter((c) => c.portraitId === portraitId).map((c) => c.houseId);
+      expect(new Set(houses).size).toBe(houses.length);
+    }
+    // first appearances keep the matched pair (portrait N lives in house N)
+    for (const c of spawned.filter((x) => x.portraitVariant === 0)) {
+      expect(c.houseId).toBe(c.portraitId);
     }
   });
 

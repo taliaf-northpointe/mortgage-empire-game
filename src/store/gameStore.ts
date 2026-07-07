@@ -3,7 +3,7 @@
  * The UI renders state and dispatches actions; it never computes game logic.
  */
 import { create } from 'zustand';
-import { DAY_END_HOUR } from '../engine/constants';
+import { DAY_END_HOUR, QUIZ_XP, XP_PER_TERM_LEARNED } from '../engine/constants';
 import { createStarterState } from '../engine/content/starter';
 import {
   hireEmployee,
@@ -17,12 +17,15 @@ import { openBranch, scoutNeighborhood } from '../engine/map';
 import { completeTutorial } from '../engine/playerActions';
 import { officeStage, purchaseUpgrade } from '../engine/upgrades';
 import {
+  answerQuiz,
   contactCustomer,
+  learnTerm,
   moveLoanForward,
   requestAllDocuments,
   requestDocument,
   toggleDelay,
 } from '../engine/playerActions';
+import { getEntry } from '../engine/content/glossary';
 import { advanceDay, advanceHour } from '../engine/tick';
 import type { DocumentKey, GameState } from '../engine/types';
 import { loadGame, saveGame, serializeSave } from './saveSystem';
@@ -54,6 +57,8 @@ interface GameStore {
   /** GDD §4.1 progressive learning */
   unlockTerm(key: string): void;
   learnTerm(key: string): void;
+  /** Resolve the pending mortgage quiz with the player's pick. */
+  answerQuiz(chosenTermKey: string): void;
   /** GDD §5 employee actions (M6) */
   trainEmployee(employeeId: string): void;
   promoteEmployee(employeeId: string): void;
@@ -287,16 +292,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   learnTerm(key) {
     const { game } = get();
-    if (!game || game.glossary[key]?.learned) return;
-    set({
-      game: {
-        ...game,
-        glossary: {
-          ...game.glossary,
-          [key]: { unlocked: true, learned: true, learnedOnDay: game.clock.day },
-        },
-      },
-    });
+    if (!game) return;
+    const next = learnTerm(game, key);
+    if (next !== game) {
+      set({ game: next });
+      pushToast(`📖 New term learned! +${XP_PER_TERM_LEARNED} XP`);
+    }
+  },
+
+  answerQuiz(chosenTermKey) {
+    const { game } = get();
+    if (!game || !game.quiz) return;
+    const correct = chosenTermKey === game.quiz.termKey;
+    const term = getEntry(game.quiz.termKey)?.term ?? game.quiz.termKey;
+    const next = answerQuiz(game, chosenTermKey);
+    if (next !== game) {
+      set({ game: next });
+      pushToast(
+        correct
+          ? `🎓 Nailed it! +${QUIZ_XP} XP`
+          : `📚 Not quite — "${term}" is waiting in the Learning Center for a refresher.`,
+      );
+    }
   },
 }));
 

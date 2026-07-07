@@ -111,6 +111,7 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu, onRe
         <NavItem
           icon={<BookOpen size={17} />}
           label="Learning Center"
+          tutorialId="nav-learning"
           onClick={() => {
             audioManager.playCue('menuNavigation');
             onNavigate('learning');

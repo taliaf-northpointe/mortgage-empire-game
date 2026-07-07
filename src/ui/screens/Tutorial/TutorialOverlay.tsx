@@ -55,7 +55,7 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'The journey, part 2: to the keys 🔑',
-    body: 'Processing: your team verifies everything that came in, ordering the Appraisal and Title Review. Underwriting: the decisive review that ends in a Conditional Approval. Clear to Close: the green light. Closing: the signing table. Complete: the loan funds, keys change hands, and confetti flies.',
+    body: 'Processing: your team verifies everything that came in, ordering the Appraisal and Title Review. Underwriting: the decisive review — expect it to take the better part of a day; careful decisions are not rushed. It ends in a Conditional Approval. Clear to Close: the green light. Closing: the signing table. Complete: the loan funds, keys change hands, and confetti flies.',
     tips: [
       'Loans progress automatically while their owner works.',
       'Between certain stages YOU click to advance — the button tells you when it\'s ready.',
@@ -109,6 +109,15 @@ const STEPS: TutorialStep[] = [
     body: 'Every family you help earns a page in the scrapbook: their photo in front of their new home, the loan that made it possible, the closing date, and the thank-you note they left. Money is the score, but the Wall is the point — a growing record of the neighbors whose lives you changed.',
     tips: ['Visit it from the highlighted heart in the sidebar any time you need a reason to smile.'],
     highlight: 'nav-wall',
+  },
+  {
+    title: 'The road ahead 📈',
+    body: "Your career climbs through thirty levels, and the game grows with you. Each level brings more leads through the door and more room in the pipeline. Every fifth level, a pop quiz tests you on a mortgage term — a correct answer pays 150 XP. And mastery invites adversity: from level 10, underwriting occasionally bounces a loan back for a resubmitted document, and from level 20, a truly neglected customer will take their business elsewhere.",
+    tips: [
+      'Reading any term in the Learning Center earns +10 XP — knowledge is career fuel.',
+      'A bounced loan returns through Document Collection; a walkaway costs reputation. Contact is your prevention for both.',
+    ],
+    highlight: 'nav-learning',
   },
   {
     title: 'Your first moves, step by step 🗺️',
