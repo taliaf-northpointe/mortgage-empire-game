@@ -3,3 +3,10 @@ dist/
 coverage/
 *.local
 .DS_Store
+
+# art source images (kept locally in OneDrive; game-ready copies are
+# processed into public/assets/art by scripts/process-art.mjs)
+/Office*.png
+/Map*.png
+/Character*.png
+/Desk.png

@@ -1,7 +1,10 @@
 /**
  * Hire-pool candidate generation (GDD §5: "new candidates with randomized
  * skill/salary"). Deterministic for a given seed — the UI picks the seed.
+ * Each pool name has a fixed gender (see characterSprites.ts) so portraits
+ * always match.
  */
+import { genderForName, spritesForGender } from './characterSprites';
 import { SALARY_RANGE_BY_ROLE } from '../constants';
 import type { HireCandidate } from '../employees';
 import { mulberry32 } from '../rng';
@@ -37,11 +40,15 @@ export function generateCandidates(seed: number, role: Role): HireCandidate[] {
     while (usedNames.has(name)) name = rng.pick(CANDIDATE_NAMES);
     usedNames.add(name);
 
+    const gender = genderForName(name);
+    const pool = spritesForGender(gender);
+    const spriteId = pool[rng.int(0, pool.length - 1)] ?? 1;
+
     const skill = Math.round((1.5 + rng.next() * 2.5) * 4) / 4; // 1.5–4.0 in quarter steps
     const skillShare = (skill - 1.5) / 2.5;
     const salaryMonthly =
       Math.round((range.min + (range.max - range.min) * (0.3 + 0.7 * skillShare)) / 50) * 50;
 
-    return { name, role, skill, salaryMonthly };
+    return { name, gender, role, skill, salaryMonthly, spriteId };
   });
 }

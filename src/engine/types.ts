@@ -84,6 +84,7 @@ export interface Employee {
   id: string;
   name: string;
   role: Role;
+  spriteId: number; // 1–8, gender-matched to the name, unique while sprites last (v8)
   level: number; // 1–3; promotion raises it — skill cap = 2.5 + level (M6)
   skill: number; // 1–5 (fractional internally, stars in UI), capped by level
   happiness: number; // 0–100
@@ -123,7 +124,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 7;
+    saveVersion: 8;
     playerName: string;
     officeName: string;
     createdAt: string;

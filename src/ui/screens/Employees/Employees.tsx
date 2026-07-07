@@ -7,8 +7,17 @@ import type { HireCandidate } from '../../../engine/employees';
 import type { Employee, Role } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
-import { initials, moneyFull } from '../../format';
+import { moneyFull } from '../../format';
 import styles from './Employees.module.css';
+
+/** The employee's actual portrait (Talia's art), cropped to a circle. */
+function Face({ spriteId, size = 38 }: { spriteId: number; size?: number }) {
+  return (
+    <span className={styles.face} style={{ width: size, height: size }}>
+      <img src={`${import.meta.env.BASE_URL}assets/art/char-${spriteId}.png`} alt="" />
+    </span>
+  );
+}
 
 const ROLES: Role[] = ['loanOfficer', 'processor', 'underwriter', 'closer'];
 type Tab = 'all' | Role;
@@ -90,7 +99,7 @@ export function Employees({ onBack }: { onBack(): void }) {
         {visible.map((employee) => (
           <article key={employee.id} className={styles.card}>
             <div className={styles.cardTop}>
-              <span className={styles.avatar}>{initials(employee.name)}</span>
+              <Face spriteId={employee.spriteId} />
               <div>
                 <strong>{employee.name}</strong>
                 <span className={styles.role}>
@@ -203,7 +212,7 @@ function HireModal({
         <div className={styles.candidates}>
           {candidates.map((candidate) => (
             <article key={candidate.name} className={styles.candidateCard}>
-              <span className={styles.avatar}>{initials(candidate.name)}</span>
+              <Face spriteId={candidate.spriteId} size={56} />
               <strong>{candidate.name}</strong>
               <span className={styles.role}>{ROLE_DISPLAY_NAME[candidate.role]}</span>
               <span className={styles.candidateSkill}>

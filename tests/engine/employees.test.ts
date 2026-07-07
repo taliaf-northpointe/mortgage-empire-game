@@ -64,7 +64,7 @@ describe('workload (GDD §5)', () => {
     let s = withProcessingLoans(createStarterState(), 5);
     expect(s.employees['emp-processor-1']?.workload).toBe(100);
 
-    s = hireEmployee(s, { name: 'Avery Brooks', role: 'processor', skill: 3, salaryMonthly: 3_900 });
+    s = hireEmployee(s, { name: 'Avery Brooks', gender: 'f', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 2 });
     s = rebalanceLoans(s);
 
     const processorLoads = Object.values(s.employees)
@@ -83,7 +83,7 @@ describe('workload (GDD §5)', () => {
 describe('assignment', () => {
   it('new stages go to the least-loaded employee of the owning role', () => {
     let s = withProcessingLoans(createStarterState(), 3);
-    s = hireEmployee(s, { name: 'Rowan Kim', role: 'processor', skill: 3, salaryMonthly: 3_900 });
+    s = hireEmployee(s, { name: 'Rowan Kim', gender: 'm', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 5 });
     const newbie = Object.values(s.employees).find((e) => e.name === 'Rowan Kim');
     expect(newbie).toBeDefined();
     expect(leastLoadedEmployeeId(s, 'processor')).toBe(newbie?.id);
@@ -116,15 +116,34 @@ describe('Train / Promote / Hire (GDD §5)', () => {
   it('hiring pays the fee and adds a fresh teammate', () => {
     const s = hireEmployee(createStarterState(), {
       name: 'Casey Nguyen',
+      gender: 'f',
       role: 'underwriter',
       skill: 3.5,
       salaryMonthly: 5_000,
+      spriteId: 2,
     });
     expect(s.currencies.coins).toBe(STARTING_COINS - HIRING_FEE);
     const hired = Object.values(s.employees).find((e) => e.name === 'Casey Nguyen');
     expect(hired?.role).toBe('underwriter');
     expect(hired?.level).toBe(1);
     expect(assignedLoanCount(s, hired?.id ?? '')).toBe(0);
+  });
+
+  it('portraits are gender-matched and unique while sprites remain (v8)', () => {
+    // starter women use sprites 3 (Dana) and 8 (Priya); the female pool is [2, 3, 6, 8]
+    let s = createStarterState();
+    s = hireEmployee(s, { name: 'Avery Brooks', gender: 'f', role: 'processor', skill: 3, salaryMonthly: 3_900, spriteId: 3 });
+    const avery = Object.values(s.employees).find((e) => e.name === 'Avery Brooks');
+    expect(avery?.spriteId).not.toBe(3); // preferred sprite already taken by Dana
+    expect([2, 6]).toContain(avery?.spriteId);
+
+    s = hireEmployee(s, { name: 'Harper Osei', gender: 'f', role: 'closer', skill: 3, salaryMonthly: 4_500, spriteId: avery?.spriteId ?? 2 });
+    const harper = Object.values(s.employees).find((e) => e.name === 'Harper Osei');
+    const womenSprites = Object.values(s.employees)
+      .filter((e) => ['Dana Kim', 'Priya Nair', 'Avery Brooks', 'Harper Osei'].includes(e.name))
+      .map((e) => e.spriteId);
+    expect(new Set(womenSprites).size).toBe(4); // all four women look distinct
+    expect(harper?.spriteId).toBeDefined();
   });
 
   it('candidate generation is deterministic per seed and priced by skill', () => {

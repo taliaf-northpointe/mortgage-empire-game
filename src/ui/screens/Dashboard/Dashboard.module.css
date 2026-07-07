@@ -267,6 +267,13 @@
   fill: var(--color-cocoa);
 }
 
+.alertBadge {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--color-paper);
+}
+
 .bob {
   animation: bob 2.4s ease-in-out infinite alternate;
 }

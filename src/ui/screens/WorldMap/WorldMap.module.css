@@ -204,6 +204,72 @@
   box-shadow: var(--shadow-soft);
   overflow: hidden;
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mapCanvas {
+  position: relative;
+  width: 100%;
+}
+
+.mapImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.mapChip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-body);
+  background: var(--color-paper);
+  border: 2px solid var(--color-sand);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: transform 120ms ease;
+  white-space: nowrap;
+}
+
+.mapChip:hover {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.mapChip strong {
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+}
+
+.mapChip span {
+  font-size: var(--text-label);
+  color: var(--color-cocoa);
+}
+
+.chip_mainOffice {
+  border-color: var(--color-terracotta);
+}
+
+.chip_branch {
+  border-color: var(--color-sunset);
+}
+
+.chip_available {
+  border-color: var(--color-sage);
+}
+
+.chip_locked {
+  opacity: 0.85;
+}
+
+.mapChipSelected {
+  box-shadow: var(--focus-ring), var(--shadow-soft);
 }
 
 .mapSvg {

@@ -28,6 +28,8 @@ import {
   WORKLOAD_HEAVY,
   WORKLOAD_LIGHT,
 } from './constants';
+import { genderForName, spritesForGender } from './content/characterSprites';
+import type { SpriteGender } from './content/characterSprites';
 import { awardAchievement } from './economy';
 import { tiersOwned } from './upgrades';
 import type { Employee, GameEvent, GameState, Role } from './types';
@@ -176,9 +178,35 @@ export function promoteEmployee(state: GameState, employeeId: string): GameState
 
 export interface HireCandidate {
   name: string;
+  gender: SpriteGender;
   role: Role;
   skill: number;
   salaryMonthly: number;
+  /** preview face for the hire modal; re-checked for uniqueness on hire */
+  spriteId: number;
+}
+
+/**
+ * Pick a portrait for a new teammate (v8): gender-matched, preferring the
+ * least-used sprite so faces stay unique while unused ones remain.
+ */
+export function pickSpriteId(state: GameState, gender: SpriteGender, preferred?: number): number {
+  const pool = spritesForGender(gender);
+  const usage = new Map<number, number>(pool.map((id) => [id, 0]));
+  for (const employee of Object.values(state.employees)) {
+    if (usage.has(employee.spriteId)) usage.set(employee.spriteId, (usage.get(employee.spriteId) ?? 0) + 1);
+  }
+  if (preferred !== undefined && usage.get(preferred) === 0) return preferred;
+  let best = pool[0] ?? 1;
+  let bestCount = Number.POSITIVE_INFINITY;
+  for (const id of pool) {
+    const count = usage.get(id) ?? 0;
+    if (count < bestCount) {
+      best = id;
+      bestCount = count;
+    }
+  }
+  return best;
 }
 
 /** Hire (GDD §5): pay the fee, welcome them aboard. */
@@ -193,6 +221,7 @@ export function hireEmployee(state: GameState, candidate: HireCandidate): GameSt
     id,
     name: candidate.name,
     role: candidate.role,
+    spriteId: pickSpriteId(s, candidate.gender ?? genderForName(candidate.name), candidate.spriteId),
     level: 1,
     skill: Math.round(candidate.skill * 100) / 100,
     happiness: 85,

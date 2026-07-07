@@ -8,14 +8,14 @@ import { Button } from '../../components/Button';
 import { moneyFull } from '../../format';
 import styles from './WorldMap.module.css';
 
-/** Plot positions for the region view (design-canvas coordinates). */
+/** Chip positions over the illustrated map (fractions of the image). */
 const PLOTS: Record<string, { x: number; y: number }> = {
-  oldTown: { x: 330, y: 200 },
-  sunnyHeights: { x: 520, y: 110 },
-  riversideVillage: { x: 150, y: 130 },
-  uptownHills: { x: 600, y: 250 },
-  eastRidge: { x: 120, y: 290 },
-  greenValley: { x: 400, y: 330 },
+  oldTown: { x: 0.262, y: 0.16 },
+  sunnyHeights: { x: 0.685, y: 0.165 },
+  riversideVillage: { x: 0.415, y: 0.47 },
+  uptownHills: { x: 0.9, y: 0.4 },
+  eastRidge: { x: 0.13, y: 0.76 },
+  greenValley: { x: 0.83, y: 0.75 },
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -119,57 +119,38 @@ export function WorldMap({ onBack }: { onBack(): void }) {
             </div>
           </nav>
 
-          {/* ── Region view ── */}
+          {/* ── Region view (Talia's illustrated Meadowbrook) ── */}
           <section className={styles.mapArea} aria-label="Region map">
-            <svg viewBox="0 0 720 420" className={styles.mapSvg}>
-              <ellipse cx="360" cy="220" rx="340" ry="190" fill="var(--color-sage)" opacity="0.15" />
-              <path
-                d="M 40 90 Q 200 160 250 260 Q 290 340 200 400"
-                stroke="var(--color-sky)"
-                strokeWidth="16"
-                fill="none"
-                opacity="0.35"
-                strokeLinecap="round"
+            <div className={styles.mapCanvas}>
+              <img
+                src={`${import.meta.env.BASE_URL}assets/art/map-region.png`}
+                alt="Meadowbrook Region"
+                className={styles.mapImage}
               />
               {NEIGHBORHOODS.map((def) => {
                 const hood = game.neighborhoods[def.id];
                 const plot = PLOTS[def.id];
                 if (!hood || !plot) return null;
                 return (
-                  <g
+                  <button
                     key={def.id}
-                    className={styles.plot}
+                    type="button"
+                    className={`${styles.mapChip} ${styles[`chip_${hood.status}`]} ${
+                      def.id === selectedId ? styles.mapChipSelected : ''
+                    }`}
+                    style={{ left: `${plot.x * 100}%`, top: `${plot.y * 100}%` }}
                     onClick={() => setSelectedId(def.id)}
-                    role="button"
                     aria-label={`${def.name}: ${STATUS_LABEL[hood.status]}`}
                   >
-                    <polygon
-                      points={`${plot.x},${plot.y - 34} ${plot.x + 56},${plot.y} ${plot.x},${plot.y + 34} ${plot.x - 56},${plot.y}`}
-                      className={`${styles.plotShape} ${styles[`plot_${hood.status}`]} ${
-                        def.id === selectedId ? styles.plotSelected : ''
-                      }`}
-                    />
-                    {(hood.status === 'mainOffice' || hood.status === 'branch') && (
-                      <g className={styles.bob}>
-                        <rect x={plot.x - 12} y={plot.y - 22} width={24} height={18} rx={4} fill="var(--color-paper)" stroke="var(--color-cocoa)" />
-                        <path d={`M ${plot.x - 16} ${plot.y - 20} L ${plot.x} ${plot.y - 32} L ${plot.x + 16} ${plot.y - 20} Z`} fill="var(--color-terracotta)" />
-                      </g>
-                    )}
-                    {hood.status === 'locked' && (
-                      <text x={plot.x} y={plot.y - 12} textAnchor="middle" fontSize="14">
-                        🔒
-                      </text>
-                    )}
-                    <text x={plot.x} y={plot.y + 14} textAnchor="middle" className={styles.plotLabel}>
+                    <strong>
+                      {hood.status === 'locked' ? '🔒 ' : hood.status === 'mainOffice' ? '🏠 ' : hood.status === 'branch' ? '🏢 ' : ''}
                       {def.name}
-                    </text>
-                  </g>
+                    </strong>
+                    <span>{STATUS_LABEL[hood.status]}</span>
+                  </button>
                 );
               })}
-              {/* ambient life */}
-              <circle className={styles.car} r="4" fill="var(--color-rose)" />
-              <circle className={styles.carSlow} r="4" fill="var(--color-sky)" />
-            </svg>
+            </div>
           </section>
 
           {/* ── Detail panel ── */}

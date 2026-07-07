@@ -148,6 +148,7 @@ interface Employee {
   id: string;
   name: string;
   role: Role;
+  spriteId: number;                  // 1–8, gender-matched to the name, unique while sprites last (v8)
   level: number;                     // 1–3; promotion raises it — skill cap = 2.5 + level (M6)
   skill: number;                     // 1–5 (fractional internally, stars in UI), capped by level
   happiness: number;                 // 0–100
@@ -157,7 +158,7 @@ interface Employee {
 }
 
 interface GameState {
-  meta: { saveVersion: 7; playerName: string; officeName: string; createdAt: string;
+  meta: { saveVersion: 8; playerName: string; officeName: string; createdAt: string;
           tutorialDone: boolean };   // M8 — tutorial shows once per save
   clock: { day: number; season: 'spring'|'summer'|'fall'|'winter'; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
@@ -230,6 +231,7 @@ interface DaySummary {
 - **v4 → v5** (M7 Economy): adds `todayRevenueByHour` (zeros), populates the `upgrades` map (tier 1 available, rest locked), and backfills the extended `DaySummary` fields on existing history.
 - **v5 → v6** (M8 Map + Tutorial): adds `neighborhood.scouted` (true for non-locked so veterans keep their visible stats) and `meta.tutorialDone = true` for existing saves (only fresh games see the tutorial).
 - **v6 → v7** (M8.1 fix): adds `xpAtDayStart` so the End-of-Day summary reports the whole day (revenue is recorded at the payout source; completions come from the day's events) instead of a rollover-instant diff that always read zero in live play.
+- **v7 → v8** (art sprites): adds `Employee.spriteId` — gender-matched via the shared first-name table, assigned least-used-first so the cast stays distinct.
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 
