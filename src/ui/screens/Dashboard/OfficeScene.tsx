@@ -23,6 +23,15 @@ export function OfficeScene({ employees, stage = 1 }: { employees: Employee[]; s
   const sorted = [...employees].sort((a, b) => a.id.localeCompare(b.id));
   const canvas = STAGE_CANVAS[stage] ?? STAGE_CANVAS[1] ?? { w: 1323, h: 1189 };
 
+  // A big team must still fit the room (playtest 2026-07-08): wide teams get
+  // a fifth desk per row, and the whole grid gently scales down toward the
+  // floor's center until every last hire is visible.
+  const perRow = sorted.length > 16 ? 5 : DESKS_PER_ROW;
+  const rows = Math.max(1, Math.ceil(sorted.length / perRow));
+  const neededH = 560 + (rows - 1) * 170 + 230; // last row's desk + name chip
+  const gridScale = Math.min(1, (canvas.h - 30) / neededH);
+  const gridTransform = `translate(${(canvas.w / 2) * (1 - gridScale)} ${canvas.h * 0.62 * (1 - gridScale)}) scale(${gridScale})`;
+
   return (
     <svg
       className={styles.scene}
@@ -31,9 +40,10 @@ export function OfficeScene({ employees, stage = 1 }: { employees: Employee[]; s
     >
       <image href={art(`office-room-${stage}.png`)} x="0" y="0" width={canvas.w} height={canvas.h} />
 
+      <g transform={gridTransform}>
       {sorted.map((employee, i) => {
-        const col = i % DESKS_PER_ROW;
-        const row = Math.floor(i / DESKS_PER_ROW);
+        const col = i % perRow;
+        const row = Math.floor(i / perRow);
         const x = 220 + col * 245 + (row % 2 === 1 ? 122 : 0);
         const y = 560 + row * 170;
         const sprite = employee.spriteId;
@@ -62,6 +72,7 @@ export function OfficeScene({ employees, stage = 1 }: { employees: Employee[]; s
           </g>
         );
       })}
+      </g>
     </svg>
   );
 }
