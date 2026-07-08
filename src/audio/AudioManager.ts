@@ -108,6 +108,10 @@ const LEGACY_MUSIC_VOLUME = 0.7;
 export const PLAYLIST: AudioAssetDefinition[] = [
   { path: '/assets/audio/music/playlist-1.mp3', category: 'music', volume: 0.6, preload: true }, // chill lofi ambient
   { path: '/assets/audio/music/playlist-2.mp3', category: 'music', volume: 0.6, preload: true }, // lofi background ambient
+  { path: '/assets/audio/music/playlist-3.mp3', category: 'music', volume: 0.6 }, // deep focus lo-fi
+  { path: '/assets/audio/music/playlist-4.mp3', category: 'music', volume: 0.6 }, // lofi background
+  { path: '/assets/audio/music/playlist-5.mp3', category: 'music', volume: 0.6 }, // chill & relaxing
+  { path: '/assets/audio/music/playlist-6.mp3', category: 'music', volume: 0.6 }, // coffee lofi chill
 ];
 
 const SOUND_LIBRARY: Record<SoundCueId, AudioAssetDefinition> = {

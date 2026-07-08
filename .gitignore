@@ -14,3 +14,6 @@ coverage/
 /House*.png
 /Home Menu.png
 /Menu.png
+
+# music source files (kept locally; playlist copies live in public/assets/audio/music)
+/lofi_music_library-*.mp3
