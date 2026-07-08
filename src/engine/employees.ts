@@ -4,6 +4,7 @@
  * Pure functions + mutating helpers for already-cloned states. No React.
  */
 import {
+  BRANCH_MANAGER_MAX_HIRES_PER_MORNING,
   EMPLOYEE_MAX_LEVEL,
   FIRE_TEAM_HAPPINESS_COST,
   HAPPINESS_DECAY_HEAVY,
@@ -33,6 +34,7 @@ import {
   WORKLOAD_HEAVY,
   WORKLOAD_LIGHT,
 } from './constants';
+import { generateCandidates } from './content/candidates';
 import { genderForName, spritesForGender } from './content/characterSprites';
 import type { SpriteGender } from './content/characterSprites';
 import { awardAchievement } from './economy';
@@ -301,7 +303,7 @@ export function fireEmployee(state: GameState, employeeId: string): GameState {
 }
 
 /** Assign Work (GDD §5): rebalance every active loan across its role's team. */
-export function rebalanceLoans(state: GameState): GameState {
+export function rebalanceLoans(state: GameState, actorName?: string): GameState {
   const s = structuredClone(state);
   const activeLoans = Object.values(s.loans).filter((l) => l.stage !== 'completed');
   for (const loan of activeLoans) loan.assignedEmployeeId = null;
@@ -310,6 +312,56 @@ export function rebalanceLoans(state: GameState): GameState {
   }
   deriveWorkloads(s);
   updateEmployeeTags(s);
-  pushEvent(s, 'loans', 'You rebalanced the workload', 'Every loan found the least-busy pair of hands.');
+  pushEvent(
+    s,
+    'loans',
+    `${actorName ?? 'You'} rebalanced the workload`,
+    'Every loan found the least-busy pair of hands.',
+  );
+  return s;
+}
+
+/**
+ * The Branch Manager's morning round (playtest 2026-07-07): if anyone on a
+ * pipeline role is overworked, spread the load; if that isn't enough, hire
+ * another pair of hands for the busiest role (at most
+ * BRANCH_MANAGER_MAX_HIRES_PER_MORNING per day) and spread it again. The
+ * result: a team that stays under the strain line without you micromanaging.
+ */
+export function branchManagerMorning(state: GameState): GameState {
+  const manager = Object.values(state.employees).find((e) => e.role === 'branchManager');
+  if (!manager) return state;
+
+  let s = structuredClone(state);
+  deriveWorkloads(s);
+  const pipelineRoles = new Set<Role>(Object.values(ROLE_BY_STAGE));
+  const overworked = () =>
+    Object.values(s.employees)
+      .filter((e) => pipelineRoles.has(e.role) && e.workload > HIGH_WORKLOAD)
+      .sort((a, b) => b.workload - a.workload);
+
+  if (overworked().length === 0) return state;
+
+  // First move: spread the existing load fairly.
+  s = rebalanceLoans(s, manager.name);
+
+  // Still drowning? Bring in reinforcements for the busiest role.
+  for (let hires = 0; hires < BRANCH_MANAGER_MAX_HIRES_PER_MORNING; hires++) {
+    const busiest = overworked()[0];
+    if (!busiest || s.currencies.coins < HIRING_FEE) break;
+    const candidates = generateCandidates((s.rngSeed ^ (s.clock.day * 52_361 + hires)) >>> 0, busiest.role);
+    const pick = candidates[0];
+    if (!pick) break;
+    const teamBefore = Object.keys(s.employees).length;
+    s = hireEmployee(s, pick);
+    if (Object.keys(s.employees).length === teamBefore) break; // couldn't afford after all
+    pushEvent(
+      s,
+      'alerts',
+      `🧑‍💼 ${manager.name} hired ${pick.name}`,
+      `The ${ROLE_DISPLAY_NAME[busiest.role]}s were drowning, so your Branch Manager brought in help and re-dealt the work.`,
+    );
+    s = rebalanceLoans(s, manager.name);
+  }
   return s;
 }

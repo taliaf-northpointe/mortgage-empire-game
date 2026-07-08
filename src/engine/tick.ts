@@ -61,6 +61,7 @@ import {
 } from './economy';
 import {
   applyDailyMorale,
+  branchManagerMorning,
   deriveWorkloads,
   effectiveness,
   hasRole,
@@ -622,6 +623,10 @@ export function advanceDay(state: GameState): GameState {
 
   // GDD §6 — and some mornings, the office has other plans.
   maybeSpawnDisruption(s);
+
+  // Playtest 2026-07-07 — the Branch Manager's morning round: rebalance any
+  // overworked team, and hire reinforcements when spreading isn't enough.
+  s = branchManagerMorning(s);
 
   return s;
 }

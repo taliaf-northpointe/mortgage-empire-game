@@ -15,7 +15,9 @@ import { MemoryWall } from './ui/screens/MemoryWall/MemoryWall';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
 import { QuizModal } from './ui/components/QuizModal';
+import { TrainingModal } from './ui/components/TrainingModal';
 import { Toasts } from './ui/components/Toasts';
+import { dueTraining } from './engine/content/trainings';
 
 /** One id per designed screen (GDD §11). Screens arrive milestone by milestone. */
 export type ScreenId =
@@ -143,11 +145,19 @@ export function App() {
 
   const quizPending =
     hasGame && screen !== 'mainMenu' && !showEndOfDay && !tutorialActive && game?.quiz;
+  // Just-in-time feature trainings (playtest 2026-07-07): one pop-up per new
+  // unlock, the moment it becomes relevant — never during menus, the tutorial,
+  // the evening summary, or a pending quiz.
+  const training =
+    hasGame && game && screen !== 'mainMenu' && !showEndOfDay && !tutorialActive && !replayingTutorial && !quizPending
+      ? dueTraining(game)
+      : null;
 
   return (
     <>
       {content}
       {quizPending && <QuizModal />}
+      {!quizPending && training && <TrainingModal training={training} />}
       <Toasts />
     </>
   );

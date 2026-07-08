@@ -317,6 +317,17 @@ export function sendThankYouNote(state: GameState, loanId: string): GameState {
   return s;
 }
 
+/**
+ * Dismiss a just-in-time feature training (playtest 2026-07-07) — each pop-up
+ * shows once per save.
+ */
+export function markTrainingSeen(state: GameState, key: string): GameState {
+  if (state.trainingsSeen?.includes(key)) return state;
+  const s = structuredClone(state);
+  s.trainingsSeen = [...(s.trainingsSeen ?? []), key];
+  return s;
+}
+
 /** Documents the player can still request for this loan. */
 export function requestableDocs(state: GameState, loanId: string): DocumentKey[] {
   const loan = state.loans[loanId];

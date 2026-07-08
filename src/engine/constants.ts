@@ -85,6 +85,7 @@ export const ROLE_DISPLAY_NAME: Record<Role, string> = {
   closer: 'Closer',
   it: 'IT Support',
   compliance: 'Compliance Officer',
+  branchManager: 'Branch Manager',
 };
 
 /*
@@ -99,9 +100,16 @@ export const ROLE_UNLOCK_LEVEL: Partial<Record<Role, number>> = {
   it: 5,
   loanOfficerAssistant: 8,
   compliance: 15,
+  branchManager: 15,
 };
 /** A Loan Officer Assistant mails this many thank-you notes each morning. */
 export const ASSISTANT_THANK_YOUS_PER_MORNING = 1;
+/**
+ * A Branch Manager keeps the staffing right (playtest 2026-07-07): each
+ * morning they rebalance any overworked team, and when spreading the load
+ * isn't enough, they hire (at most this many per day) and rebalance again.
+ */
+export const BRANCH_MANAGER_MAX_HIRES_PER_MORNING = 1;
 /** With in-house IT, mishaps are rarer and end sooner (and morale suffers less). */
 export const IT_DISRUPTION_CHANCE_FACTOR = 0.5;
 export const IT_DISRUPTION_HOURS_OFF = 1;
@@ -360,6 +368,7 @@ export const SALARY_RANGE_BY_ROLE: Record<Role, { min: number; max: number }> = 
   closer: { min: 4_200, max: 5_100 },
   it: { min: 3_800, max: 4_600 },
   compliance: { min: 5_000, max: 6_200 },
+  branchManager: { min: 5_200, max: 6_500 },
 };
 
 /** GDD §2/§4 (M6) — simple daily lead generation until M8 events */

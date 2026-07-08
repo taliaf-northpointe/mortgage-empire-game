@@ -22,6 +22,7 @@ import {
   approveDocument,
   contactCustomer,
   learnTerm,
+  markTrainingSeen,
   moveLoanForward,
   requestAllDocuments,
   requestDocument,
@@ -66,6 +67,8 @@ interface GameStore {
   answerQuiz(chosenTermKey: string): void;
   /** Wall of Homes — thank a borrower (once each); word of mouth sends a referral. */
   sendThankYouNote(loanId: string): void;
+  /** Dismiss a just-in-time feature training pop-up (shows once per save). */
+  dismissTraining(key: string): void;
   /** GDD §5 employee actions (M6) */
   trainEmployee(employeeId: string): void;
   promoteEmployee(employeeId: string): void;
@@ -357,6 +360,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
           : `💌 Thank-you note sent to ${page?.customerName ?? 'the family'}.`,
       );
     }
+  },
+
+  dismissTraining(key) {
+    const { game } = get();
+    if (!game) return;
+    const next = markTrainingSeen(game, key);
+    if (next !== game) set({ game: next });
   },
 }));
 

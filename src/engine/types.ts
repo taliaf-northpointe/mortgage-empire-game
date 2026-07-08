@@ -25,7 +25,8 @@ export type Role =
   | 'underwriter'
   | 'closer'
   | 'it'
-  | 'compliance';
+  | 'compliance'
+  | 'branchManager';
 
 export type DocumentKey =
   | 'employmentVerification'
@@ -207,5 +208,7 @@ export interface GameState {
   auditDone?: boolean;
   /** Market mood (optional): rate lows/spikes make headlines and move lead volume for a few days. */
   market?: { mood: 'refiBoom' | 'rateSpike' | 'calm'; daysLeft: number } | null;
+  /** Feature trainings already shown (optional) — each unlock pop-up appears once per save. */
+  trainingsSeen?: string[];
   rngSeed: number;
 }

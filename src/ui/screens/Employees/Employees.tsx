@@ -33,6 +33,7 @@ const ROLES: Role[] = [
   'closer',
   'it',
   'compliance',
+  'branchManager',
 ];
 type Tab = 'all' | Role;
 
